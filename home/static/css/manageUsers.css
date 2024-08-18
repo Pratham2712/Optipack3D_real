@@ -1,0 +1,133 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'Manrope', sans-serif;
+    background-color: #ffffff;
+    display: flex;
+    scroll-behavior: smooth;
+}
+
+body {
+    display: flex;
+    flex: 1;
+    height: 100%;
+}
+
+.navbar .user-image {
+    width: 60px;
+    height: 48px;
+    margin: 20px;
+}
+
+.navbar .cta {
+    width: 25px;
+    height: 25px;
+    margin: 7px;
+}
+
+.navbar {
+    width: 80px;
+    background-color: #ffffff;
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 2px solid #e3e7f0;
+    height: 120%; /* Ensure the navbar takes the full height */
+    box-shadow: 0 4px 8px 0 rgba(227, 231, 240, 0.8); /* Add drop shadow */
+}
+
+
+.navbar a {
+    display: block;
+    padding-top: 6px;
+    padding-left: 6px;
+    padding-right: 6px;
+    color: #333;
+    text-decoration: none;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    transition: border 0.01s; /* Smooth transition for hover effect */
+}
+
+.navbar a:hover {
+    background-color: #d5d5d5;
+    border: 2px solid #ffffff; /* Add black border on hover */
+}
+
+.container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #fcfbfb;
+    border-radius: 8px;
+    margin: 2px;
+    overflow: visible;
+    max-width: calc(100% - 82px); /* Subtracting the width of navbar and margins */
+}
+
+.reload-button {
+    background: #fcfbfb;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+.reload-button img {
+    display: block; /* Remove any inline block gaps */
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2px;
+    padding: 20px;
+    border-bottom: 2px solid #E6E8EDCC; /* Example border */
+}
+
+.breadcrumb a {
+    color: #000;
+    text-decoration: none;
+}
+
+.breadcrumb span {
+    color: #888;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+}
+
+.user-info .user-name {
+    margin-right: 10px;
+    padding: 4px;
+    font-weight: bold;
+}
+
+.user-info .company-email {
+    margin-left: 10px;
+    color: #888;
+}
+.user-others{
+    width: 16px;
+    height: 16px;
+    padding: 10px;
+}
+
+.user-info .user-image {
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+}
+
+main {
+    flex: 1; /* Ensure main takes the full remaining height */
+    display: flex;
+    flex-direction: column;
+    background-color: #fcfbfb;
+    padding: 20px;
+    border-radius: 8px;
+}

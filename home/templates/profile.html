@@ -1,0 +1,318 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+
+    <title>Settings Page</title>
+    <link rel="stylesheet" href="{% static 'css/profile.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/introjs.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="navbar">
+        <img src="{% static 'images/logo.png' %}" alt="User Image" class="user-image">
+        <a href="#"><img src="{% static 'images/path_outline.png' %}" class="cta"></a>
+        <a href="#"><img src="{% static 'images/home.png' %}" class="cta"></a>
+        <a href="#"><img src="{% static 'images/optimization.png' %}" class="cta"></a>
+        <a href="#"><img src="{% static 'images/setting.png' %}" class="cta"></a>
+        <a href="#"><img src="{% static 'images/support.png' %}" class="cta"></a>
+    </div>
+    <div class="container">
+        <header>
+            <div class="breadcrumb">
+                <img src="{%static 'images/home-header.png'%}" style="margin:4px 4px;padding-left:5px; height: 16px;width: 16px;"><a href="{% url 'home' %}">Home</a> &gt; <span>Settings</span>
+            </div>
+            <div class="user-info">
+                <!-- Reload button with image inside -->
+                <button type="button" id="reloadButton" class="reload-button">
+                    <img src="{% static 'images/reload.png' %}" alt="Reload" class="user-others">
+                </button>
+                <img src="{% static 'images/Notification.png' %}" alt="Notifications" style="height: 22px;width: 17px;padding: 0 20px;">
+                <img src="{% static 'images/author-photo.png' %}" alt="User Image" class="user-image">
+                <span class="user-name">{{ user.user_first_name}}</span>
+                <span class="company-email">{{ user.email }}</span>
+            </div>
+            
+        </header>
+
+        <!-- Form with settings to reset -->
+        <main id="settingsForm">
+            <section class="settings-header-head">
+                <h2>User Based Settings</h2>
+                <div class="actions-head">
+                    <a class="btn-cancel" style="padding: 10px 100px; font-weight: 600;font-size: 13px;line-height: 16px;">Add Users</a>
+                    <a href="{% url 'manageUsers' %}" class="btn-apply"  style="text-decoration:none;padding: 10px 100px; font-weight: 600;font-size: 13px;line-height: 16px;">Manage Users</a>
+                </div>
+            </section>
+            <section class="settings-header">
+                <h2>Order and load plan based settings</h2>
+                <div class="actions">
+                    <button class="btn-cancel">Cancel</button>
+                    <button class="btn-apply">Apply</button>
+                </div>
+            </section>
+            
+            <section class="settings-section">
+                <div class="settings-group">
+                    <label for="standard-container-types">Standard container types</label>
+                    <select id="standard-container-types" class="styled-select">
+                        <option>Select From Dropdown</option>
+                        <option>20' dry container</option>
+                        <option>40' dry container</option>
+                        <option>40' high cube container</option>
+                        <option value="add-new-container">Add New Container</option>
+                    </select>
+                </div>
+                <div class="settings-group">
+                    <label for="standard-shipping-location">Standard Shipping location</label>
+                    <select id="standard-shipping-location" class="styled-select">
+                        <option>Select From Dropdown</option>
+                        <option value="add-new-location">Add New Shipping Location</option>
+                    </select>
+                </div>
+                <div class="settings-group">
+                    <label for="standard-destination-location">Standard destination location</label>
+                    <select id="standard-destination-location" class="styled-select">
+                        <option>Select From Dropdown</option>
+                        <option value="add-new-destination">Add New Destination Location</option>
+                    </select>
+                </div>
+                <div class="settings-group">
+                    <label for="minimum-utilization-details">Minimum Utilization Details</label>
+                    <select id="minimum-utilization-details" class="styled-select">
+                        <option>Select From Dropdown</option>
+                        {% for i in utilization_range %}
+                        <option>{{ i }}%</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="settings-group">
+                    <label for="maximum-delivery-horizon">Maximum possible delivery horizon</label>
+                    <select id="maximum-delivery-horizon" class="styled-select">
+                        <option>Select From Dropdown</option>
+                        {% for i in delivery_horizon_range %}
+                        <option>{{ i }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </section>
+            <section class="settings-section" id="dashboard">
+                <h2>Dashboard permission settings</h2>
+                <div class="permissions-table">
+                    <div class="permissions-header">
+                        <span class="permission-type"></span>
+                        <span class="permission-role">Loading team</span>
+                        <span class="permission-role">Load planner</span>
+                        <span class="permission-role">Shipping coordinator</span>
+                        <span class="permission-role">Leadership team</span>
+                    </div>
+                    
+                    <div class="permissions-row">
+                        <span class="permission-type">CFR</span>
+                        <select>
+                            <option>Select from Dropdown</option>
+                            <option value="allowed">Allowed</option>
+                            <option value="not_allowed">Not Allowed</option>
+                        </select>
+                        <select>
+                            <option>Select from Dropdown</option>
+                            <option value="allowed">Allowed</option>
+                            <option value="not_allowed">Not Allowed</option>
+                        </select>
+                        <select>
+                            <option>Select from Dropdown</option>
+                            <option value="allowed">Allowed</option>
+                            <option value="not_allowed">Not Allowed</option>
+                        </select>
+                        <select>
+                            <option>Select from Dropdown</option>
+                            <option value="allowed">Allowed</option>
+                            <option value="not_allowed">Not Allowed</option>
+                        </select>
+                    </div>
+                    
+                    <div class="permissions-row">
+                        <span class="permission-type">One time rate</span>
+                        <select>
+                            <option>Select from Dropdown</option>
+                            <option value="allowed">Allowed</option>
+                            <option value="not_allowed">Not Allowed</option>
+                        </select>
+                        <select>
+                            <option>Select from Dropdown</option>
+                            <option value="allowed">Allowed</option>
+                            <option value="not_allowed">Not Allowed</option>
+                        </select>
+                        <select>
+                            <option>Select from Dropdown</option>
+                            <option value="allowed">Allowed</option>
+                            <option value="not_allowed">Not Allowed</option>
+                        </select>
+                        <select>
+                            <option>Select from Dropdown</option>
+                            <option value="allowed">Allowed</option>
+                            <option value="not_allowed">Not Allowed</option>
+                        </select>
+                    </div>
+                    
+                    <div class="permissions-row">
+                        <span class="permission-type">Location Wise Performance</span>
+                        <select>
+                            <option>Select from Dropdown</option>
+                            <option value="allowed">Allowed</option>
+                            <option value="not_allowed">Not Allowed</option>
+                        </select>
+                        <select>
+                            <option>Select from Dropdown</option>
+                            <option value="allowed">Allowed</option>
+                            <option value="not_allowed">Not Allowed</option>
+                        </select>
+                        <select>
+                            <option>Select from Dropdown</option>
+                            <option value="allowed">Allowed</option>
+                            <option value="not_allowed">Not Allowed</option>
+                        </select>
+                        <select>
+                            <option>Select from Dropdown</option>
+                            <option value="allowed">Allowed</option>
+                            <option value="not_allowed">Not Allowed</option>
+                        </select>
+                    </div>
+                    
+                    <div class="permissions-row">
+                        <span class="permission-type">Source Destination Combinations Loss</span>
+                        <select>
+                            <option>Select from Dropdown</option>
+                            <option value="allowed">Allowed</option>
+                            <option value="not_allowed">Not Allowed</option>
+                        </select>
+                        <select>
+                            <option>Select from Dropdown</option>
+                            <option value="allowed">Allowed</option>
+                            <option value="not_allowed">Not Allowed</option>
+                        </select>
+                        <select>
+                            <option>Select from Dropdown</option>
+                            <option value="allowed">Allowed</option>
+                            <option value="not_allowed">Not Allowed</option>
+                        </select>
+                        <select>
+                            <option>Select from Dropdown</option>
+                            <option value="allowed">Allowed</option>
+                            <option value="not_allowed">Not Allowed</option>
+                        </select>
+                    </div>
+                    
+                    <div class="permissions-row">
+                        <span class="permission-type">Planning volume loss</span>
+                        <select>
+                            <option>Select from Dropdown</option>
+                            <option value="allowed">Allowed</option>
+                            <option value="not_allowed">Not Allowed</option>
+                        </select>
+                        <select>
+                            <option>Select from Dropdown</option>
+                            <option value="allowed">Allowed</option>
+                            <option value="not_allowed">Not Allowed</option>
+                        </select>
+                        <select>
+                            <option>Select from Dropdown</option>
+                            <option value="allowed">Allowed</option>
+                            <option value="not_allowed">Not Allowed</option>
+                        </select>
+                        <select>
+                            <option>Select from Dropdown</option>
+                            <option value="allowed">Allowed</option>
+                            <option value="not_allowed">Not Allowed</option>
+                        </select>
+                    </div>
+                    
+                </div>
+            </section>
+            
+            
+        </main>
+    </div>
+
+    <!-- Container Modal -->
+    <div id="newContainerModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <form id="newContainerForm">
+                <div class="form-group">
+                    <label for="containerName">Name</label>
+                    <input type="text" id="containerName" name="containerName" required>
+                </div>
+                <div class="form-group">
+                    <label for="containerLength">Length</label>
+                    <input type="number" id="containerLength" name="containerLength" required min="1">
+                </div>
+                <div class="form-group">
+                    <label for="containerWidth">Breadth</label>
+                    <input type="number" id="containerWidth" name="containerWidth" required min="1">
+                </div>
+                <div class="form-group">
+                    <label for="containerHeight">Height</label>
+                    <input type="number" id="containerHeight" name="containerHeight" required min="1">
+                </div>
+                <button type="submit" class="btn-add">Add Container</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Location Modal -->
+    <div id="newLocationModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <form id="newLocationForm">
+                <div class="form-group">
+                    <label for="locationName">Location Name</label>
+                    <input type="text" id="locationName" name="locationName" required>
+                </div>
+                <button type="submit" class="btn-add">Add Location</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="{% static 'js/profile.js' %}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/intro.min.js"></script>
+    <script>
+        introJs().setOptions({
+            steps: [
+                {
+                    title: 'Welcome to the Profile Setup',
+                    intro: 'We will walk you through the tour.',
+                    position: 'bottom' // Ensure the tooltip is positioned nicely
+                },
+                {
+                    element: document.querySelector('.navbar'),
+                    intro: 'Use this navbar for navigating around the website.',
+                    position: 'bottom'
+                },
+                {
+                    element: document.querySelector('.settings-section'),
+                    intro: 'Here you can configure your order and load-based company settings.',
+                    position: 'top'
+                },
+                {
+                    element: document.getElementById('dashboard'),
+                    intro: 'Give access to the required roles for the dashboard.',
+                    position: 'top'
+                }
+            ],
+            dontShowAgain: true,
+            showProgress: true, // Adds a progress bar
+            showBullets: true, // Adds step bullets
+            overlayOpacity: 0.6, // Slightly lighter overlay for better visibility
+            scrollToElement: true, // Smooth scroll to element
+            exitOnOverlayClick: false, // Prevent exit when clicking on overlay
+            hidePrev: false, // Show previous button
+            hideNext: false // Show next button
+        }).start();
+    </script>
+    
+</body>
+</html>

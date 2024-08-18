@@ -1,0 +1,254 @@
+{%load static%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{% csrf_token %}">
+    <title>OptiPack3D</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+
+    <link rel="stylesheet" href="static/css/home.css">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet"> -->
+</head>
+<body>
+    <header>
+        <nav>
+            <img src="static/images/logo.png" style="height: 40px; width: 55px; margin: 10px;">
+            <div class="logo">OptiPack3D</div>
+            <div class="CTA">
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">About</a></li>
+                    <li><a href="#">Blog</a></li>
+                    <li><a href="#">Features</a></li>
+                    <li><a href="#">Settings</a></li>
+                    <li><a href="#">Contact</a></li>
+                </ul>
+            </div>
+            <div class="nav-buttons">
+                <a href="{% url 'freeTrial' %}" class="btn">Free Trial</a>
+                <br>
+                <a href="{% url 'joinCreateOrganisation' %}" class="btn-secondary">Login/Signup</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="outer_img_box">
+            <section class="hero">
+                <img src="static/images/home_container.png" alt="3D Load Planning Software">
+                <div class="hero-content">
+                    <h1 style="font-size: 56px;line-height: 60px;font-weight: 800;">3D Load Planning Software</h1>
+                    <p style="font-size: 19px;line-height: 24px;font-weight: 400;">Optimize container volume and weight. Reduce shipping costs. Increase warehouse efficiency.</p>
+                    <div class="hero-buttons">
+                        <button class="btn" style="color: black;background-color: white;margin-bottom: 25px;margin-top: 10px;width: 20%;display: inline; font-weight: 700;font-size: 16px;line-height: 24px;">Enquire Now</button>
+                    </div>
+                    <div class="hero-buttons">
+                        <a href="{% url 'freeTrial' %}"class="btn-secondary" style="display: inline; width: 15%; font-weight: 700;font-size: 16px;line-height: 24px;">Start Free Trial</a>
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+
+        <section class="features">
+            <h2 class="main_headings">Key Features</h2>
+            <div class="features-grid" style="font-size: 16px;line-height: 20px;font-weight: 700;">
+                <div class="feature-card">
+                    <div class="heading">
+                        <img src="static/images/Volume-weightload.png">
+                    </div>
+                    <p>Volume/Weight Load</p>
+
+                    
+                    <p class="feature-card-inner">Maximize container utilization with 3D load planning</p>
+                </div>
+                <div class="feature-card">
+                    <div class="heading">
+                        <img src="static/images/intellostack.png">
+                    </div>
+                    <p>Intello Stack</p>
+
+                    
+                    <p class="feature-card-inner">Auto-stack boxes with intelligent algorithms</p>
+                </div>
+                <div class="feature-card">
+                    <div class="heading">
+                        <img src="static/images/weight_check.png">
+                    </div>
+                    <p>Weight Check</p>
+
+                    
+                    <p class="feature-card-inner">Ensure the container's weight limit is not exceeded</p>
+                </div>
+                <div class="feature-card">
+                    <div class="heading">
+                        <img src="static/images/praticalloadplan.png">
+                    </div>
+                    <p>Practical Load Plan</p>
+
+                    
+                    <p class="feature-card-inner">Load  plan considers practical labour constraints</p>
+                </div>
+                <div class="feature-card">
+                    <div class="heading">
+                        <img src="static/images/shareplan.png">
+                    </div>
+                    <p>Share Plan</p>
+                    
+                    <p class="feature-card-inner">Share the load plan with your team or customers</p>
+                </div>
+                <div class="feature-card">
+                    <div class="heading">
+                        <img src="static/images/exportreport.png">
+                    </div>
+                    <p>Export Report</p>
+
+                    
+                    <p class="feature-card-inner">Export the load plan as a PDF, Excel, or 3D image</p>
+                </div>
+                <div class="feature-card">
+                    <div class="heading">
+                        <img src="static/images/customcontainer.png">
+                    </div>
+                    <p>Custom Container</p>
+
+                    
+                    <p class="feature-card-inner">Add custom boxes to optimize the load plan</p>
+                </div>
+                <div class="feature-card">
+                    <div class="heading">
+                        <img src="static/images/multicontainer.png">
+                    </div>
+                    <p>Multi-Container</p>
+
+                    
+                    <p class="feature-card-inner">Load boxes into multiple containers at  once</p>
+                </div>
+                <div class="feature-card">
+                    <div class="heading">
+                        <img src="static/images/chooseload.png">
+                    </div>
+                    <p>Choose Load</p>
+
+                    
+                    <p class="feature-card-inner">Choose the optimum load from  multiple selections</p>
+                </div>
+                <div class="feature-card">
+                    <div class="heading">
+                        <img src="static/images/userdefinedsettings.png">
+                    </div>
+                    <p>User Defined Settings</p>
+
+                    
+                    <p class="feature-card-inner">Multiple options for the user to define settings</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="how-it-works">
+            <h2 class="main_headings">How It Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <img src="static/images/userdefinedsettings.png" alt="Upload Boxes" style="height: 40px;width: 40px;">
+                    <p>1. Upload Boxes</p>
+                    <p>Upload the box list in CSV or Excel format</p>
+                </div>
+                <div class="step">
+                    <img src="static/images/userdefinedsettings.png" alt="Set Container" style="height: 40px;width: 40px;">
+                    <p>2. Set Container</p>
+                    <p>Select the container type and define the weight limit</p>
+                </div>
+                <div class="step">
+                    <img src="static/images/userdefinedsettings.png" alt="Auto-Stack" style="height: 40px;width: 40px;">
+                    <p>3. Auto-Stack</p>
+                    <p>Use the auto-stack function to stack boxes in layers</p>
+                </div>
+                <div class="step">
+                    <img src="static/images/userdefinedsettings.png" alt="Optimize" style="height: 40px;width: 40px;">
+                    <p>4. Optimize</p>
+                    <p>Optimize the load plan based on your requirements</p>
+                </div>
+                <div class="step">
+                    <img src="static/images/userdefinedsettings.png" alt="Visualize and Export" style="height: 40px;width: 40px;">
+                    <p>5. Visualize and export</p>
+                    <p>Review the load plan in 3D view and export the report</p>
+                </div>
+            </div>
+        </section>
+        <div class="emphasized">
+            Practical. Simple.<br> Optimal.
+        </div>
+        <p style="text-align: center; margin-top: 50px;color: grey; font-size: 25px;word-spacing: 5px;">Execution ready, pragmatic and easy way of building 3d loads</p>
+        <br>
+        <br>
+        <br>
+
+        <div class="emphasized">
+            Get Started with OptiPack3D
+            <div class="emphasized_buttons">
+                <a href="#" class="btn" style="background-color: #1469C2">Start Free Trial</a><br>
+                <a href="#" class="btn-secondary" style="background-color: rgb(187, 187, 187);">Request a Demo</a>
+            </div>
+        </div>
+        
+
+        <section class="about">
+            <h2>Roles</h2>
+            <div class="team">
+                <div class="team-member">
+                    <img src="static/images/loadingteam.jpg" alt="Loading Team">
+                    <p>Loading team</p>
+                    <p>Final set of loaders responsible for executing load plans</p>
+                </div>
+                <div class="team-member">
+                    <img src="static/images/shippingcoord.jpg" alt="Shipping Coordinator">
+                    <p>Shipping Coordinator</p>
+                    <p>End -to-End management of freight </p>
+                </div>
+                <div class="team-member">
+                    <img src="static/images/loadplanner.jpg" alt="Load Planner">
+                    <p>Load Planner</p>
+                    <p>Set of user responsible for creating right loads to dispatch;</p>
+                </div>
+                <div class="team-member">
+                    <img src="static/images/leadershipteam.jpg" alt="Leadership Team">
+                    <p>Leadership team</p>
+                    <p>Track key performance metrics and drive productivity agenda</p>
+                </div>
+            </div>
+       
+        </section>
+        <section class="about" style="max-width: 100%;">
+            <h2>About us</h2>
+            <p class="inner_about">We are a group of alumni from the Indian Institutes of Management (IIM) and the Indian Institutes of Technology (IIT) with extensive experience in Customer Service and Logistics. Our mission is to identify and address untapped opportunities, or "white spaces," within Supply Chain Organizations, where innovative solutions can drive significant improvements in efficiency, cost-effectiveness, and overall performance. By leveraging our diverse backgrounds and comprehensive knowledge, we develop and implement cutting-edge technologies and strategies to enhance supply chain operations, optimize logistics, and improve the end-to-end customer experience, creating robust, resilient, and responsive systems that adapt to market demands and drive long-term business success.</p>
+            <h3>Contact Us:</h3>
+            <div class="contact" style="display: flex; justify-content: space-between; max-width: 80%; margin-left:130px">
+                <p>Phone: +91 88401970291</p>
+                <p>Email: <a href="mailto:shahrukh@optipack3d.com" style="text-decoration: none;">shahrukh@optipack3d.com</a></p>
+            </div>
+        </section>
+    </main>
+    
+    <div class="footer">
+        <div class="footer-cta">
+            <a href="#">Home</a>
+            <a href="#">About</a>
+            <a href="#">Settings</a>
+            <a href="#">Contact</a>
+            <a href="#">Blog</a>
+            <a href="#">Features</a>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+        </div>
+        <div class="social-media">
+            <a href="#"><img src="static/images/linkedin.png"></a>
+        </div>
+        <p style="text-align: center;"> &copy; 2024 OptiPack3D. All rights reserved.</p>
+    </div>
+    
+    <script src="static/js/script.js"></script>
+</body>
+</html>

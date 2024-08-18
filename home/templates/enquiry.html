@@ -1,0 +1,137 @@
+{%load static%}
+<!DOCTYPE html>
+<html lang="en">
+<link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+
+<style>
+    .enquiry-form {
+        /* max-width: 1000px;
+         */
+        width: 50%;
+        margin: 20px auto;
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .enquiry-form h2 {
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .enquiry-form .form-group {
+        margin-bottom: 15px;
+    }
+
+    .enquiry-form label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #555;
+    }
+
+    .enquiry-form input[type="text"],
+    .enquiry-form input[type="email"],
+    .enquiry-form input[type="number"],
+    .enquiry-form textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-sizing: border-box;
+        font-size: 16px;
+    }
+
+    .enquiry-form textarea {
+        resize: vertical;
+    }
+
+    .enquiry-form .btn-add {
+        background-color: #1d1f2b;
+        color: #fff;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        width: 100%;
+        transition: background-color 0.3s;
+    }
+
+    .enquiry-form .btn-add:hover {
+        background-color: #32344b;
+    }
+
+    .google-auth {
+        max-width: 600px;
+        margin: 20px auto;
+        text-align: center;
+    }
+
+    .google-auth h2 {
+        margin-bottom: 20px;
+    }
+
+</style>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings Page</title>
+    <link rel="stylesheet" href="{% static 'css/profile.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/introjs.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="navbar">
+        <img src="{% static 'images/logo.png' %}" alt="User Image" class="user-image">
+        <a href="#"><img src="{% static 'images/path_outline.png' %}" class="cta"></a>
+        <a href="#"><img src="{% static 'images/home.png' %}" class="cta"></a>
+        <a href="#"><img src="{% static 'images/optimization.png' %}" class="cta"></a>
+        <a href="#"><img src="{% static 'images/setting.png' %}" class="cta"></a>
+        <a href="#"><img src="{% static 'images/support.png' %}" class="cta"></a>
+    </div>
+    <div class="container">
+        <header>
+            <div class="breadcrumb">
+                <a href="{% url 'home' %}">Home</a> &gt; <a href="{% url 'freeTrial' %}">FreeTrial</a> &gt; <span>Enquiry</span>
+            </div>
+            <div class="user-info">
+                <!-- Reload button with image inside -->
+                <button type="button" id="reloadButton" class="reload-button">
+                    <img src="{% static 'images/reload.png' %}" alt="Reload" class="user-others">
+                </button>
+                <img src="{% static 'images/Notification.png' %}" alt="Notifications" style="height: 22px;width: 17px;padding: 0 20px;">
+                <img src="{% static 'images/author-photo.png' %}" alt="User Image" class="user-image">
+                <span class="user-name">{{ user.user_first_name }}</span>
+                <span class="company-email">{{ user.email }}</span>
+            </div>
+        </header>
+        <main>
+            <div class="enquiry-form">
+                <h2>Enquiry Form</h2>
+                <form action="#" method="post">
+                    <div class="form-group">
+                        <label for="name">Name</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="number" id="phone" name="phone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Message</label>
+                        <textarea id="message" name="message" required></textarea>
+                    </div>
+                    <button type="submit" class="btn-add">Submit</button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

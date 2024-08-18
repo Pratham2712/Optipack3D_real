@@ -1,0 +1,6 @@
+Django 
+sqlparse
+mysqlclient
+pillow
+matplotlib
+pandas

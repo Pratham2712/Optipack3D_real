@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Getting Started with Three.js</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #a0a2a0; /* Matching background color of the scene */
+        }
+        canvas {
+            display: block;
+        }
+        .button-container {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .view-button {
+            padding: 5px 10px;
+            font-size: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .view-button:hover {
+            background-color: #45a049;
+        }
+    </style>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js",
+                "jsm/": "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="button-container">
+        <button id="resetButton" class="view-button">Reset View</button>
+        <button id="topViewButton" class="view-button">Top View</button>
+        <button id="bottomViewButton" class="view-button">Bottom View</button>
+        <button id="sideViewButton" class="view-button">Side View</button>
+        <div id="gltf-container"></div>
+    </div>
+    <script>
+        // Function to get query parameter value by name
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        // Get the file paths from the query parameters
+        const threedPath = getQueryParam('threed_paths');
+        console.log(threedPath)
+        const containerInfPath = getQueryParam('container_inf');
+
+        // Ensure paths are passed to the external 3JS.js script
+        window.threedPath = threedPath;
+        window.containerInfPath = containerInfPath;
+    </script>
+    <script type="module" src="3JS.js"></script>
+</body>
+</html>

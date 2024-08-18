@@ -1,0 +1,285 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'Manrope', sans-serif;
+    background-color: #ffffff;
+    display: flex;
+    scroll-behavior: smooth;
+}
+
+
+
+body {
+    display: flex;
+    flex: 1;
+    height: 100%;
+}
+
+.navbar .user-image {
+    width: 60px;
+    height: 48px;
+    margin: 20px;
+}
+
+.navbar .cta {
+    width: 25px;
+    height: 25px;
+    margin: 7px;
+}
+
+.navbar {
+    width: 80px;
+    background-color: #ffffff;
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 2px solid #e3e7f0;
+    height: 200%;
+    box-shadow: 0 4px 8px 0 rgba(227, 231, 240, 0.8);
+}
+
+.navbar a {
+    display: block;
+    padding: 6px;
+    color: #333;
+    text-decoration: none;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    transition: background-color 0.2s, border 0.2s;
+}
+
+.navbar a:hover {
+    background-color: #d5d5d5;
+    border: 2px solid #ffffff;
+}
+
+.container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #fcfbfb;
+    border-radius: 8px;
+    margin: 2px;
+    max-width: calc(100% - 82px);
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2px;
+    padding: 20px;
+    border-bottom: 2px solid #E6E8EDCC;
+}
+
+.breadcrumb {
+    display: flex;
+}
+
+.breadcrumb a {
+    color: #000;
+    text-decoration: none;
+}
+
+.breadcrumb span {
+    color: #888;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+}
+
+.user-info .user-name {
+    margin-right: 10px;
+    padding: 4px;
+    font-weight: bold;
+}
+
+.user-info .company-email {
+    margin-left: 10px;
+    color: #888;
+}
+
+.user-others {
+    width: 22px;
+    height: 18px;
+    padding: 0 20px;
+}
+
+.user-info .user-image {
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+}
+
+main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #fcfbfb;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.container.order-details {
+    /* margin-bottom: 20px; */
+    margin: 0;
+    padding: 20px 100px;
+}
+
+.container-tabs {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+.tab-button {
+    background-color: #f0f0f0;
+    border: none;
+    padding: 10px 20px;
+    margin-right: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 5px;
+}
+
+.tab-button.active {
+    background-color: #000;
+    color: #fff;
+}
+
+
+/* Updated SKU display styles */
+.content-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.container-view {
+    flex: 1;
+    /* padding-right: 20px;  */
+}
+
+
+.sku-details {
+    flex: 1;
+    display: flex;
+    /* flex-wrap: wrap; */
+    gap: 20px; /* Adjusted space between SKU items */
+    margin-bottom: 20px; /* Add space below SKU details */
+}
+
+.features {
+    margin-bottom: 20px;
+}
+
+.btn-cancel,
+.btn-apply {
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-cancel {
+    background-color: #ddd;
+    color: #555;
+}
+
+.btn-cancel:hover {
+    background-color: #767676;
+    color: white;
+}
+
+.btn-apply {
+    background-color: #000;
+    color: #fff;
+}
+
+.btn-apply:hover {
+    background-color: #797979;
+    color: black;
+}
+
+.sku {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #e3e7f0;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    width: 14%;
+}
+
+.sku-label {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 5px;
+    color: #fff;
+    font-weight: bold;
+    text-align: center;
+}
+
+.sku-count {
+    margin-top: 10px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.container-info {
+    margin-bottom: 20px;
+    font-size: 18px;
+    line-height: 16px;
+    font-weight: 600;
+    margin: 40px 0;
+    /* border: 1px solid black; */
+    /* wid */
+}
+
+
+.container-view {
+    margin-bottom: 20px;
+    padding: 20px;
+}
+
+.edit-loading-pattern {
+    margin-bottom: 20px;
+}
+
+.edit-pattern-button {
+    background-color: #000;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.share {
+    display: flex;
+    align-items: center;
+}
+
+.share input[type="email"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-right: 10px;
+    flex: 1;
+}
+
+.share-button {
+    background-color: #000;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}

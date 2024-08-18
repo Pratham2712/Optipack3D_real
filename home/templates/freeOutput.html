@@ -1,0 +1,616 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+
+    <title>Settings Page</title>
+    <link rel="stylesheet" href="{% static 'css/freeOutput.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/introjs.min.css" rel="stylesheet">
+    <style>
+        .fullscreen-popup, .pro-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(3px);
+            z-index: 1000;
+        }
+        .popup-content, .pro-popup-content {
+            position: relative;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .popup-content {
+            width: 90%;
+            height: 90%;
+        }
+        .pro-popup-content {
+            width: 300px;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .popup-content iframe, .pro-popup-content iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .popup-content button, .pro-popup-content button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #333;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .popup-content button:hover, .pro-popup-content button:hover {
+            background: #555;
+        }
+        .sku-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(3px);
+            z-index: 1000;
+        }
+        .sku-popup-content {
+            position: relative;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .sku-popup-content h3 {
+            margin-top: 0;
+        }
+        .sku-popup-content button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #333;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .sku-popup-content button:hover {
+            background: #555;
+        }
+        .hidden {
+            display: none;
+        }
+ 
+        .container-view {
+            display: flex;
+            padding: 0;
+            align-items: flex-start;
+        }
+        .sku-heading {
+            display: block;
+        }
+        .block-elements {
+            display: block;
+        }
+        #fullscreen-button {
+            font-size: 10px;
+            padding: 5px;
+            margin-bottom: 5px;
+        }
+        .features {
+            padding: 2px;
+        }
+        .features-input {
+            width: 40%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+        .features-input:focus {
+            border-color: #333;
+            outline: none;
+        }
+        .signup-button {
+            position: relative;
+            top: 60px;
+            background: #4CAF50;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            text-align: center;
+            text-decoration: none;
+        }
+        .signup-button:hover {
+            background: #45a049;
+        }
+        .sku-label {
+            cursor: pointer; /* Change cursor to pointer */
+        }
+        
+        .popup-content {
+            display: flex;
+            align-items: center;
+            padding: 30px;
+            position: relative;
+            width: 90%;
+        }
+
+        .popup-text {
+            flex: 1;
+            margin-right: 40px;
+            width: 500px;
+            text-align: left;
+        }
+
+        .popup-text h1 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .popup-text p {
+            margin-bottom: 20px;
+        }
+
+        .popup-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .popup-image {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .popup-image img {
+            /* max-width: 100%;
+            height: auto; */
+            width: 600px;
+            height: 400px;
+            border:1px solid black;
+            border-radius: 5px;
+        }
+        .popup {
+            display: none;
+            position: fixed;
+            border-radius: 10px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            border: 1px solid #888;
+            background-color: white;
+            z-index: 9;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        .close-icon {
+            position: absolute;
+            top: 1px;
+            right: 0px;
+            cursor: pointer;
+            height: 20px;
+            width: 20px;
+        }
+        .blurred-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 8;
+            display: none;
+        }
+
+        .table-info {
+            margin: 20px 0;
+            /* border-radius: 5px; */
+            border-collapse: collapse;
+            width: 80%;
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .table-info table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table-info th, .table-info td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .table-info th {
+            background-color: #f2f2f2;
+            color: #333;
+            font-weight: 700;
+        }
+
+        .table-info tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .table-info tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .table-info caption {
+            margin: 10px 0;
+            font-size: 1.5em;
+            font-weight: 500;
+            text-align: left;
+        }
+
+        .table-info td a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+
+        .table-info td a:hover {
+            text-decoration: underline;
+        }
+
+        .info-icon {
+            position: relative;
+            display: inline-block;
+        }
+
+        .info-icon img {
+            width: 20px;
+            height: 20px;
+            margin-top: 35px;
+            margin-left: 5px;
+            cursor: pointer;
+        }
+
+        .tooltip {
+            visibility: hidden;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 5px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            left: 125%; /* Position to the right of the icon */
+            top: 50%;
+            transform: translateY(-50%);
+            width: 600px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: -5px; /* Position arrow on the left side of the tooltip */
+            transform: translateY(-50%);
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent transparent transparent #555;
+        }
+        .info-icon:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+        .head{
+            display: flex;
+            flex-direction: row;
+            gap: 5px;
+        }
+        .premium-icon{
+            height: 20px;
+            width:20px;
+            margin-left:7px;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <img src="{% static 'images/logo.png' %}" alt="User Image" class="user-image">
+        <a href="#"><img src="{% static 'images/path_outline.png' %}" class="cta"></a>
+        <a href="#"><img src="{% static 'images/home.png' %}" class="cta"></a>
+        <a href="#"><img src="{% static 'images/optimization.png' %}" class="cta"></a>
+        <a href="#"><img src="{% static 'images/setting.png' %}" class="cta"></a>
+        <a href="#"><img src="{% static 'images/support.png' %}" class="cta"></a>
+    </div>
+    <div class="container">
+        <header>
+            <div class="breadcrumb">
+                <a href="{% url 'home' %}">Home</a>&gt; <span>Loader(Trial Version)</span>
+            </div>
+            <div class="user-info">
+                <img src="{% static 'images/Notification.png' %}" alt="Notifications" class="user-others" style="height: 22px; width: 17px;">
+                <img src="{% static 'images/author-photo.png' %}" alt="User Image" class="user-image">
+                <span class="user-name">{{ user.user_first_name }}</span>
+                <span class="company-email">{{ user.email }}</span>
+            </div>
+        </header>
+        <main>
+            <div class="order-details">
+                <div class="head">
+                    <h1>Loading Pattern</h1>
+                    <span class="info-icon">
+                        <img src="{% static 'images/info-icon.png' %}" alt="Info Icon">
+                        <span class="tooltip">Our algorithm elegantly mirrors real-world constraints by prioritizing the loading of homogeneous strips first, seamlessly followed by the non-homogeneous strips, ensuring an efficient and harmonious process.</span>
+                    </span>
+                </div>
+                
+                <div class="table-info">
+                    {{df | safe}}
+                </div>
+                <!-- <p>Created: 07/06/24 | Last updated: 10/06/24</p> -->
+                <div class="container-tabs">
+                    {% for index in container_indices %}
+                        <button style="margin-top:20px;width: 16%;" class="tab-button{% if forloop.first %} active{% endif %}" data-index="{{ forloop.counter0 }}">Container {{ index }}</button>
+                    {% endfor %}
+                </div>
+                <div class="container-info">
+                    <p>Container type: <span id="container-type">{{container_type}}</span></p>
+                    <p>Container fill rate: <span id="vol-occ-curr">{{vol_occ_curr.0}}%</span></p>
+                    <!-- <p>Total volume: <span id="vol-container">{{vol_container.0}} cub.m</span></p> -->
+                    <p>Packaging Density: <span id="packaging-density">{{packaging_density.0}}%</span></p>
+                    <!-- <p>Total Cases: <span id="total-cases">0</span></p> -->
+
+                </div>
+                <div class="content-wrapper">
+                    <div class="container-view">
+                        <div style="flex: 1;">
+                            <button id="fullscreen-button" class="btn-cancel">Fullscreen View</button>
+                            <iframe id="threejs-frame" src="{% static 'three_render.html' %}?threed_paths={{ threed_paths.0 }}&container_inf={{ container_inf.0 }}" width="800" height="600"></iframe>
+                        </div>
+                        <div class="block-elements" style="flex: 1; margin-left: 50px;">
+                            <div class="sku-heading"></div>
+                            <div class="sku-details"></div>
+                            <div class="features">
+                                <h3>Edit Loading Pattern<img class="premium-icon" src="{% static 'images/premium.png' %}"></h3>
+                                <button class="btn-apply" id="edit-pattern">Edit Pattern</button>
+                            </div>
+                            <div>
+                                <h3>Share/Export Loading<img class="premium-icon" src="{% static 'images/premium.png' %}"></h3>
+                                <input type="email" class="features-input" placeholder="Enter your email">
+                                <br>
+                                <button class="btn-apply" id="share-loading">Share</button>
+                            </div>
+                            <div class="features">
+                                <h3>3d Loading Animation<img class="premium-icon" src="{% static 'images/premium.png' %}"></h3>
+                                <button class="btn-apply" id="Loading-Animation">See Loading Animation</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+          
+        </main>
+    </div>
+    
+    <div id="fullscreen-popup" class="fullscreen-popup hidden">
+        <div class="popup-content">
+            <button id="close-popup">Close</button>
+            <iframe id="fullscreen-iframe" src=""></iframe>
+        </div>
+    </div>
+
+    
+    <div class="blurred-background" id="blurredBackground"></div>
+    <div id="popup" class="popup">
+        <div class="popup-content">
+            <div class="popup-text">
+                <h1 style="font-size: 40px;">Upgrade to the Premium Version</h2>
+                <p style="font-size: 20px;">Explore the premium features that can transform your workflow and productivity.</p>
+                <div class="popup-buttons">
+                    <a href="{% url 'additionalInformation' %}" class="btn-apply" style=" text-decoration: none;">Upgrade Now</a>
+                    <a href="{% url 'enquire' %}" class="btn-cancel" style=" text-decoration: none;">Learn More</a>
+                </div>
+            </div>
+            <div class="popup-image">
+                <img src="{% static 'images/proVersion.png'%}" alt="Pro Version">
+            </div>
+            <img src="{% static 'images/cross.png' %}" alt="Close" class="close-icon" onclick="closePopup()">
+        </div>
+    </div>
+
+    <div id="sku-popup" class="sku-popup hidden">
+        <div class="sku-popup-content">
+            <button id="close-sku-popup">Close</button>
+            <h3>SKU Details</h3>
+            <div id="sku-info-content"></div>
+        </div>
+    </div>
+
+    
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const threedPaths = {{ threed_paths|safe }};
+            const containerInf = {{ container_inf|safe }};
+            const containerTabs = document.querySelectorAll('.tab-button');
+            const iframe = document.getElementById('threejs-frame');
+            const fullscreenButton = document.getElementById('fullscreen-button');
+            const fullscreenPopup = document.getElementById('fullscreen-popup');
+            const fullscreenIframe = document.getElementById('fullscreen-iframe');
+            const closePopupButton = document.getElementById('close-popup');
+            const volOccCurr = {{ vol_occ_curr|safe }};
+            const boxInfo = {{ box_info|safe }};
+            const volContainer = {{ vol_container|safe }};
+            const packagingDensity = {{ packaging_density|safe }};
+            // const numPlaced = {{ num_placed|safe }};
+            const colors = {{ colors|safe }};
+            const proPopup = document.getElementById('pro-popup');
+            const closeProPopupButton = document.getElementById('close-pro-popup');
+
+            const skuDetails = document.querySelector('.sku-details');
+            const skuHead = document.querySelector('.sku-heading');
+
+            const skuPopup = document.getElementById('sku-popup');
+            const closeSkuPopupButton = document.getElementById('close-sku-popup');
+            const skuInfoContent = document.getElementById('sku-info-content');
+
+            // Create and append the SKU heading only once
+            const skuHeading = document.createElement('h3');
+            skuHeading.textContent = 'SKU Details';
+            skuHead.appendChild(skuHeading);
+
+            fullscreenButton.addEventListener('click', () => {
+                fullscreenIframe.src = iframe.src;
+                fullscreenPopup.classList.remove('hidden');
+            });
+
+            closePopupButton.addEventListener('click', () => {
+                fullscreenPopup.classList.add('hidden');
+            });
+
+            containerTabs.forEach((tab, index) => {
+                tab.addEventListener('click', () => {
+                    containerTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    iframe.src = `{% static 'three_render.html' %}?threed_paths=${threedPaths[index]}&container_inf=${containerInf[index]}`;
+                    document.getElementById('vol-occ-curr').textContent = volOccCurr[index] + '%';
+                    // document.getElementById('vol-container').textContent = volContainer[index] + ' cub.m';
+                    document.getElementById('packaging-density').textContent = packagingDensity[index] + '%';
+
+                    // const totalCases = boxInfo[index].reduce((sum, num) => sum + num, 0);
+                    // document.getElementById('total-cases').textContent = totalCases;
+
+                    // Load SKU data for the selected container
+                    const skus = boxInfo[index];  // Access the SKU data for the selected container
+                    skuDetails.innerHTML = ''; // Clear existing SKUs
+
+                    skus.forEach((sku, i) => {
+                        const skuDiv = document.createElement('div');
+                        skuDiv.classList.add('sku');
+
+                        const skuLabel = document.createElement('span');
+                        skuLabel.classList.add('sku-label');
+                        skuLabel.style.backgroundColor = colors[i % colors.length]; // Add color to label
+                        skuLabel.textContent = `SKU ${i + 1}`;
+                        skuLabel.dataset.skuIndex = i; // Add data attribute to store SKU index
+                        skuLabel.style.textShadow = `
+                            -0.4px -0.4px 0 black,  
+                            0.4px -0.4px 0 black,
+                            -0.4px  0.4px 0 black,
+                            0.4px  0.4px 0 black
+                            `;
+
+                        const skuCount = document.createElement('span');
+                        skuCount.classList.add('sku-count');
+                        skuCount.textContent = `${sku} cases`;
+
+                        skuDiv.appendChild(skuLabel);
+                        skuDiv.appendChild(skuCount);
+                        skuDetails.appendChild(skuDiv);
+                    });
+
+                    // Add click event listeners to SKU labels
+                    document.querySelectorAll('.sku-label').forEach(label => {
+                        label.addEventListener('click', () => {
+                            const skuIndex = label.dataset.skuIndex;
+                            const skuInfo = {{ sku_info|safe }}[skuIndex];
+
+                            skuInfoContent.innerHTML = `
+                                <p>Box Number: ${skuInfo[0]}</p>
+                                <p>Length: ${skuInfo[1]}</p>
+                                <p>Width: ${skuInfo[2]}</p>
+                                <p>Height: ${skuInfo[3]}</p>
+                                <p>Num Of Boxes Per Strip: ${skuInfo[4]}</p>
+                            `;
+                            skuPopup.classList.remove('hidden');
+                        });
+                    });
+                });
+            });
+
+            // Trigger click on the first tab to initialize the view
+            if (containerTabs.length > 0) {
+                containerTabs[0].click();
+            }
+
+            closeSkuPopupButton.addEventListener('click', () => {
+                skuPopup.classList.add('hidden');
+            });
+            
+
+            // Show popup for Edit Pattern and Share buttons
+            // document.getElementById('edit-pattern').addEventListener('click', () => {
+            //     proPopup.classList.remove('hidden');
+            // });
+
+            // document.getElementById('share-loading').addEventListener('click', () => {
+            //     proPopup.classList.remove('hidden');
+            // });
+
+            // closeProPopupButton.addEventListener('click', () => {
+            //     proPopup.classList.add('hidden');
+            // });
+        });
+        document.querySelectorAll(".cta").forEach(function(element) {
+                element.addEventListener("click", function() {
+                    var popup = document.getElementById("popup");
+                    var blurredBackground = document.getElementById("blurredBackground");
+                    popup.style.display = "block";
+                    blurredBackground.style.display = "block";
+                });
+            });
+            function closePopup() {
+                var popup = document.getElementById("popup");
+                var blurredBackground = document.getElementById("blurredBackground");
+                popup.style.display = "none";
+                blurredBackground.style.display = "none";
+            }
+            document.getElementById("edit-pattern").addEventListener("click", function() {
+                var popup = document.getElementById("popup");
+                var blurredBackground = document.getElementById("blurredBackground");
+                popup.style.display = "block";
+                blurredBackground.style.display = "block";
+            });
+            document.getElementById("share-loading").addEventListener("click", function() {
+                var popup = document.getElementById("popup");
+                var blurredBackground = document.getElementById("blurredBackground");
+                popup.style.display = "block";
+                blurredBackground.style.display = "block";
+            });document.getElementById("Loading-Animation").addEventListener("click", function() {
+                var popup = document.getElementById("popup");
+                var blurredBackground = document.getElementById("blurredBackground");
+                popup.style.display = "block";
+                blurredBackground.style.display = "block";
+            });
+    </script>
+</body>
+</html>

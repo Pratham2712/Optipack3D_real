@@ -1,0 +1,48 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome - Optipack</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+
+</head>
+<body>
+    <div class="container">
+        <div class="left-side">
+            <div class="logo">
+                <img src="{% static 'images/logo.png' %}" alt="ShelfLyf Logo">
+                <span style="font-weight: 600;font-size: 22px;line-height: 24px;">Optipack</span>
+            </div>
+            <h1>Welcome to our platform</h1>
+            <p class="subtitle">Design your optimized load plan</p>
+            <div class="button-group">
+                <button class="action-button" onclick="window.location.href='{% url 'login' %}'">Login</button>
+                <button class="action-button" onclick="window.location.href='{% url 'additionalInformation' %}'">Sign Up</button>
+            </div>
+            <footer>
+                <p>©2024 Container Builder  · <a href="#">Privacy & terms</a></p>
+            </footer>
+        </div>
+        <div class="right-side">
+            <div class="testimonial">
+                <p>“Current container utilisation for good transfer is in the range of 70-75% and freight shipment charges (Shippageddon 2.0) is further leading to increase in costs thereby impacting bottom line. Optipack3d can assist in optimally designing your load plan by creating a realizable load plan and strengthening your loading process”.</p>
+                <!-- <div class="author">
+                    <img src="{% static 'images/author-photo.png' %}" alt="Author Photo">
+                    <div class="author-info">
+                        <h4>Shahrukh Khan</h4>
+                        <p>Founder, Sustainable.io</p>
+                    </div>
+                </div> -->
+            </div>
+            <div class="dashboard-image">
+                <img src="{% static 'images/dashboard.png' %}" alt="Dashboard">
+            </div>
+        </div>
+    </div>
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+</html>

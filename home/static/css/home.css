@@ -1,0 +1,350 @@
+body {
+    font-family: 'Manrope', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+}
+
+header {
+    background: #fff;
+    color: #000;
+    padding: 10px 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+nav .logo {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 22.5px;
+    color: #333;
+    margin-left: 0px;
+}
+
+.CTA {
+    margin-left: auto;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 21px;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+}
+
+nav ul li a {
+    color: #333;
+    text-decoration: none;
+}
+
+.nav-buttons {
+    display: flex;
+    gap: 10px;
+    margin: 20px;
+}
+
+.nav-buttons .btn, .nav-buttons .btn-secondary {
+    padding: 10px 12px;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+.nav-buttons .btn {
+    background: black;
+    color: #fff;
+}
+
+.nav-buttons .btn:hover {
+    background-color: #2a2a2a;
+}
+
+.nav-buttons .btn-secondary {
+    background: #8c949b;
+    color: #fff;
+}
+
+.nav-buttons .btn-secondary:hover {
+    background-color: #979696;
+}
+
+main {
+    width: 90%;
+    margin: 0 auto;
+    margin-bottom: 200px;
+}
+
+.outer_img_box {
+    width: 90%;
+    height: 800px;
+    background-color: #bcb4ac;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 50px auto;
+    padding: 18px;
+}
+
+.hero {
+    position: relative;
+    width: 100%;
+    height: auto;
+}
+
+.hero img {
+    width: 100%;
+    height: 800px;
+    display: block;
+    border-radius: 30px;
+    object-fit: cover;
+}
+
+.hero-content {
+    position: absolute;
+    top: 50%;
+    left: 5%;
+    transform: translateY(-50%);
+    color: white;
+    text-shadow: 0px 0px 10px rgba(0, 0, 0, 0.7);
+}
+
+.hero-content h1 {
+    font-size: 3rem;
+    margin: 0 0 10px 0;
+}
+
+.hero-content p {
+    font-size: 1.25rem;
+    margin: 0 0 20px 0;
+}
+
+.hero-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn, .btn-secondary {
+    font-size: 1rem;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.hero-buttons .btn {
+    background-color: wheat;
+}
+
+.btn-secondary {
+    background-color: black;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #333;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.features, .how-it-works, .about {
+    padding: 50px 20px;
+    text-align: center;
+}
+
+.features h2, .how-it-works h2, .about h2 {
+    font-size: 36px;
+    margin-bottom: 30px;
+}
+
+.features-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.feature-card {
+    background: white;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    width: 200px;
+    text-align: left;
+}
+
+.feature-card-inner {
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 21px;
+    margin-top: 0px;
+}
+
+.feature-card img {
+    height: 24px;
+    width: 24px;
+}
+
+.heading {
+    display: flex;
+}
+
+.heading img {
+    padding-top: 14px;
+    margin-right: 3px;
+}
+
+.steps, .team {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.step, .team-member {
+    background: white;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    width: 200px;
+    text-align: left;
+}
+
+.emphasized {
+    text-align: center;
+    font-weight: 700;
+    font-size: 64px;
+}
+
+.emphasized .emphasized_buttons .btn, .btn-secondary {
+    font-size: 1.1rem;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.emphasized .emphasized_buttons a {
+    color: white;
+    height: 30px;
+    width: 200px;
+    display: inline-block;
+}
+
+.step img, .team-member img {
+    width: 100%;
+    height: auto;
+    border-radius: 5px;
+}
+
+.footer {
+    background-color: rgb(210, 206, 206);
+    color: #333;
+    text-align: center;
+    padding: 20px;
+}
+.footer-cta {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Creates a responsive grid */
+    gap: 20px; /* Space between items */
+    justify-content: center; /* Center the grid items */
+    margin: 0 auto;
+    max-width: 70%; /* Optional: To limit the width of the footer */
+}
+
+.footer-cta a {
+    text-decoration: none;
+    color: #333; /* Adjust the color to match your design */
+    font-size: 16px; /* Adjust the font size */
+    padding: 10px;
+    transition: color 0.3s;
+}
+
+.footer-cta a:hover {
+    color: #636363; /* Change color on hover */
+}
+
+
+.social-media {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.social-media a {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+}
+
+.social-media img {
+    width: 100%;
+    height: auto;
+}
+
+@media (max-width: 768px) {
+    nav {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    nav ul {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .nav-buttons {
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .hero-content {
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .hero-buttons .btn, .hero-buttons .btn-secondary {
+        width: 100%;
+    }
+
+    .emphasized .emphasized_buttons a {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-content h1 {
+        font-size: 2rem;
+    }
+
+    .hero-content p {
+        font-size: 1rem;
+    }
+
+    .nav-buttons .btn, .nav-buttons .btn-secondary {
+        padding: 8px 12px;
+    }
+
+    .hero-buttons .btn, .hero-buttons .btn-secondary {
+        padding: 8px 12px;
+    }
+}

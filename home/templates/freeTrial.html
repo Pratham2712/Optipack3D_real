@@ -1,0 +1,823 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+    <title>Settings Page</title>
+    <link rel="stylesheet" href="{% static 'css/freeTrial.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/introjs.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css"/>
+    <style>
+        /* Your additional styles here */
+        .delete-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+            @keyframes highlightAnimation {
+        0% {
+            background-color: #333; /* Dark grey */
+            color: #ccc; /* Light grey text */
+            transform: scale(1);
+        }
+        50% {
+            background-color: #555; /* Medium grey */
+            color: #eee; /* Almost white text */
+            transform: scale(1.05);
+        }
+        100% {
+            background-color: #333; /* Dark grey */
+            color: #ccc; /* Light grey text */
+            transform: scale(1);
+        }
+    }
+    .highlight-button {
+        border: 2px solid #666; /* Grey border */
+        font-weight: bold;
+        animation: highlightAnimation 2s ease-in-out; /* Adjust duration and timing */
+        transition: color 0.3s ease, border-color 0.3s ease;
+    }
+    .error-message {
+            color: red;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        .pickr{
+            margin-top: 37px;
+            margin-right: 20px;
+        }
+
+        .pickr.pcr-palette{
+            transform: translate(-200px,-500px);
+        }
+        .pickr .pcr-interaction {
+            display: flex;
+            justify-content: center;
+            gap: 10px; /* Add some space between buttons */
+        }
+        /* Ensure buttons and their contents are flex containers */
+        button.collapsible {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            outline: none;
+            font-size: 20px;
+            line-height: 32px;
+            font-weight: 700;
+            transition: 0.4s;
+            height: 60px; /* Increase height */
+            border-radius:10px;
+            
+            
+        }
+
+        /* Ensure images within the buttons are not skewed */
+        button.collapsible .icon {
+            height: 20px;
+            width: 20px;
+        }
+
+        /* Optional: Adjust the button padding and margins for better layout */
+        button.collapsible {
+            padding: 10px 15px;
+            
+        }
+
+        /* Ensure the icons remain responsive */
+        button.collapsible img.icon {
+            height: auto;
+            width: 20px; /* Adjust as needed */
+        }
+
+        /* Media queries for responsiveness on smaller screens */
+        @media (max-width: 768px) {
+            button.collapsible {
+                padding: 8px 10px;
+            }
+            button.collapsible img.icon {
+                width: 16px; /* Adjust as needed */
+            }
+        }
+        .center-button {
+            display: block;
+            margin: 20px auto;
+            padding: 15px 30px;
+            font-size: 18px;
+            width: 180px; /* Adjust width as needed */
+        }
+        /* Adjust the number of containers input and align its label */
+        .num-containers-input {
+            max-height: 30px; /* Reduce the height */
+            padding: 5px; /* Adjust padding for a smaller input */
+            margin-top: 10px; /* Adjust margin to align with the label */
+        }
+
+        .label-and-input {
+            display: flex;
+            align-items: center;
+        }
+
+        .label-and-input .num {
+            margin-right: 10px; /* Adjust spacing between label and input */
+            margin-top: 20px;
+        }
+        .small-button {
+            padding: 10px 2px; /* Smaller padding for smaller button size */
+            font-size: 15px; /* Smaller font size */
+            width: 100px; /* Adjust width as needed */
+        }
+        label.num{
+            margin-top:15px;
+        }
+        body{
+            overflow: hidden;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap:  10px; /* Space between the buttons */
+            margin-top: 20px;
+            margin-right: 5px;
+        }
+
+      
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <img src="{% static 'images/logo.png' %}" alt="User Image" class="user-image">
+        <a href="#"><img src="{% static 'images/path_outline.png' %}" class="cta"></a>
+        <a href="#"><img src="{% static 'images/home.png' %}" class="cta"></a>
+        <a href="#"><img src="{% static 'images/optimization.png' %}" class="cta"></a>
+        <a href="#"><img src="{% static 'images/setting.png' %}" class="cta"></a>
+        <a href="#"><img src="{% static 'images/support.png' %}" class="cta"></a>
+    </div>
+    <div class="container">
+        <header>
+            <div class="breadcrumb">
+                <a href="{% url 'home' %}">Home</a> &gt; <span>FreeTrial</span>
+            </div>
+            <div class="user-info">
+                <button type="button" id="reloadButton" class="reload-button">
+                    <img src="{% static 'images/reload.png' %}" alt="Reload" class="user-others">
+                </button>
+                <img src="{% static 'images/Notification.png' %}" alt="Notifications" style="height: 22px;width: 17px;padding: 0 20px;">
+                <img src="{% static 'images/author-photo.png' %}" alt="User Image" class="user-image">
+                <span class="user-name">{{ user.user_first_name }}</span>
+                <span class="company-email">{{ user.email }}</span>
+            </div>
+        </header>
+
+        <div class="container-form">
+            <h1>Container Builder (Trial Version)</h1>
+            <form action="{% url 'freeOutput' %}" method="POST" enctype="multipart/form-data" id="combinedForm" onsubmit="return validateForm()">
+                {% csrf_token %}
+
+                <div id="warningMessage" class="warning-message" style="display:none;">Please fill out the load details first.</div>
+
+                <button type="button" class="collapsible" id="addLoadDetailsButton">
+                    Add load details
+                    <img src="{% static 'images/unlock.png' %}" alt="Lock Icon" id="addLoadDetailsIcon" class="icon">
+                </button>
+                <div class="content">
+                    <input type="hidden" id="numTypes" name="numTypes" value="3">
+                    <div id="productForm">
+                        <!-- Prefilled SKUs will be generated here -->
+                    </div>
+                    <div class="SKU-cta">
+                        <button type="button" class="btn-apply" onclick="addSku()">Add SKU</button>
+                        <button type="button" class="btn-apply" onclick="finishLoading()">Submit</button>
+                    </div>
+                </div>
+
+                <button type="button" class="collapsible" id="addContainerDetails">
+                    Add Container details
+                    <img src="{% static 'images/lock.png' %}" alt="Lock Icon" id="addContainerDetailsIcon" class="icon">
+                </button>
+                <div class="content">
+                    <div id="containerDetails" class="container-details-container">
+                        <input type="hidden" id="totalContainers" name="totalContainers" value="1">
+                        <label for="numContainers" class="num">Number of Containers:</label>
+                        <input type="number" id="numContainers" name="numContainers" min="1" max="2" value="1" class="num-containers-input">
+                        <div id="typeInputs" class="container-types">
+                            <!-- Dynamic inputs for the container type will be generated here -->
+                        </div>
+                    </div>
+                    <div class="button-container">
+                        <button type="button" class="btn-apply" id="AddContainer">Add Container</button>
+                        <button type="button" class="btn-apply" onclick="finishLoadingContainer()">Submit</button>
+                    </div>
+                </div>
+
+                <button type="button" class="collapsible" id="optimizeButton">
+                    Add Optimization constraints
+                    <img src="{% static 'images/lock.png' %}" alt="Lock Icon" class="icon">
+                </button>
+                <div class="content">
+                    <!-- Add optimization constraints content here if needed -->
+                </div>
+
+                <div class="blurred-background" id="blurredBackground"></div>
+                <div id="popup" class="popup">
+                    <div class="popup-content">
+                        <div class="popup-text">
+                            <h1>Upgrade to the Premium Version</h1>
+                            <p>Explore the premium features that can transform your workflow and productivity.</p>
+                            <div class="popup-buttons">
+                                <a href="{% url 'additionalInformation' %}" class="btn-apply">Upgrade Now</a>
+                                <a href="{% url 'enquire' %}" class="btn-cancel">Learn More</a>
+                            </div>
+                        </div>
+                        <div class="popup-image">
+                            <img src="{% static 'images/proVersion.png'%}" alt="Pro Version">
+                        </div>
+                        <img src="{% static 'images/cross.png' %}" alt="Close" class="close-icon" onclick="closePopup()">
+                    </div>
+                </div>
+                
+                <button type="submit" id="final" class="btn-apply center-button">Optimize</button>
+            </form>
+        </div>
+    </div>
+
+        
+    <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            generateInputs();
+            generateTypeInputs();
+
+            var coll = document.getElementsByClassName("collapsible");
+            for (var i = 0; i < coll.length; i++) {
+                coll[i].addEventListener("click", function() {
+                    var id = this.id;
+                    if (id === "addContainerDetails") {
+                        var loadDetailsFinished = document.getElementById("addLoadDetailsIcon").src.includes("tick.png");
+                        if (!loadDetailsFinished) {
+                            document.getElementById("warningMessage").style.display = "block";
+                            return; // Prevent collapsing if load details are not finished
+                        }
+                    }
+                    this.classList.toggle("active");
+                    var content = this.nextElementSibling;
+                    if (content.style.display === "block") {
+                        content.style.display = "none";
+                    } else {
+                        content.style.display = "block";
+                    }
+                });
+            }
+
+            document.getElementById("optimizeButton").addEventListener("click", function() {
+                var popup = document.getElementById("popup");
+                var blurredBackground = document.getElementById("blurredBackground");
+                popup.style.display = "block";
+                blurredBackground.style.display = "block";
+            });
+
+            document.getElementById("AddContainer").addEventListener("click", function() {
+                var popup = document.getElementById("popup");
+                var blurredBackground = document.getElementById("blurredBackground");
+                popup.style.display = "block";
+                blurredBackground.style.display = "block";
+            });
+            document.querySelectorAll(".cta").forEach(function(element) {
+                element.addEventListener("click", function() {
+                    var popup = document.getElementById("popup");
+                    var blurredBackground = document.getElementById("blurredBackground");
+                    popup.style.display = "block";
+                    blurredBackground.style.display = "block";
+                });
+            });
+        });
+        // window.addEventListener("beforeunload", function (e) {
+        //     var confirmationMessage = "Are you sure you want to leave this page? Your changes may not be saved.";
+        //     (e || window.event).returnValue = confirmationMessage; // Gecko, Trident, Chrome 34+
+        //     return confirmationMessage; // Gecko, WebKit, Chrome <34
+        // });
+
+        let colorIndex = 0; // Counter to keep track of the current color index
+        const colors = [
+            'rgba(244, 67, 54, 1)',  // Color 1
+            'rgba(76, 175, 80, 1)',  // Color 2
+            'rgba(33, 150, 243, 1)'  // Color 3
+        ];
+
+            
+    function initializeColorPicker(pickerId, colorInputId) {
+        const pickr = Pickr.create({
+            el: '#' + pickerId,
+            theme: 'nano', // or 'monolith', or 'classic'
+            swatches: [
+                'rgba(244, 67, 54, 1)',
+                'rgba(233, 30, 99, 1)',
+                'rgba(156, 39, 176, 1)',
+                'rgba(103, 58, 183, 1)',
+                'rgba(63, 81, 181, 1)',
+                'rgba(33, 150, 243, 1)',
+                'rgba(3, 169, 244, 1)',
+                'rgba(0, 188, 212, 1)',
+                'rgba(0, 150, 136, 1)',
+                'rgba(76, 175, 80, 1)',
+                'rgba(139, 195, 74, 1)',
+                'rgba(205, 220, 57, 1)',
+                'rgba(255, 235, 59, 1)',
+                'rgba(255, 193, 7, 1)',
+                'rgba(255, 152, 0, 1)',
+                'rgba(255, 87, 34, 1)',
+                'rgba(121, 85, 72, 1)',
+                'rgba(158, 158, 158, 1)',
+                'rgba(96, 125, 139, 1)',
+                'rgba(0, 0, 0, 1)'
+            ],
+            default: colors[colorIndex],
+            components: {
+                // Main components
+                preview: true,
+                hue: true,
+                // Input / output Options
+                interaction: {
+                    save: true,
+                    cancel: true
+                }
+            }
+        });
+        const currColor = document.getElementById(colorInputId);
+        // console.log(currColor)
+        currColor.value = colors[colorIndex];
+        // Update the counter to the next color
+        colorIndex = (colorIndex + 1) % colors.length;
+
+        pickr.on('save', (color, instance) => {
+            const rgbaColor = color.toRGBA().toString();
+            console.log(colorInputId);
+            document.getElementById(colorInputId).value = rgbaColor;
+            // console.log(document.getElementById(colorInputId).value);
+
+            document.getElementById(colorInputId).style.border = "1px solid #000"; // Adding a thin border
+            document.getElementById(colorInputId).style.backgroundColor = rgbaColor; // Adding background color for better visibility
+            pickr.hide();
+        });
+
+        // pickr.on('clear', (instance) => {
+        //     document.getElementById(colorInputId).value = '';
+        //     document.getElementById(colorInputId).style.border = "1px solid #000"; // Adding a thin border
+        //     document.getElementById(colorInputId).style.backgroundColor = 'transparent'; // Making the background transparent
+        //     pickr.hide();
+        // });
+
+        pickr.on('cancel', (instance) => {
+            pickr.hide();
+        });
+    }
+
+        function validateForm() {
+            var inputs = document.querySelectorAll('input[type="text"], input[type="number"], input[type="hidden"]');
+            var isValid = true;
+
+            for (var i = 0; i < inputs.length; i++) {
+                var value = inputs[i].value.trim();
+                // console.log(inputs[i].name,inputs[i].value,inputs[i].id)
+
+                var errorMessage = inputs[i].nextElementSibling;
+
+                if (!errorMessage || !errorMessage.classList.contains('error-message')) {
+                    errorMessage = document.createElement('div');
+                    errorMessage.classList.add('error-message');
+                    inputs[i].parentNode.insertBefore(errorMessage, inputs[i].nextSibling);
+                }
+                // console.log(inputs[i].name.startsWith('color'));
+
+
+                if (inputs[i].name.startsWith('sku') || inputs[i].name.startsWith('') ) {
+                    // console.log("YEs SKU")
+                    errorMessage.textContent = '';
+                    continue; // Skip validation for SKU fields
+                }
+
+                if (value === '' || isNaN(value) || Number(value) < 0) {
+                    // console.log("YEs error",i)
+
+                    errorMessage.textContent = 'Please enter a valid non-negative number.';
+                    inputs[i].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    isValid = false;
+                    break;
+                } else {
+                    errorMessage.textContent = '';
+                }
+            }
+
+            return isValid;
+        }
+
+        function checkDuplicateColors() {
+            var colorInputs = document.querySelectorAll('input[name^="color"]');
+            var colorValues = [];
+
+            function roundRGBA(rgba) {
+                return rgba.replace(/(\d+(\.\d+)?)/g, function(match) {
+                    return Math.round(parseFloat(match));
+                });
+            }
+
+            for (var i = 0; i < colorInputs.length; i++) {
+                var colorValue = colorInputs[i].value.trim();
+                var roundedColorValue = roundRGBA(colorValue);
+
+                if (colorValues.includes(roundedColorValue)) {
+                    alert('Duplicate colors detected. Please select unique colors for each SKU.');
+                    colorInputs[i].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return false;
+                }
+                colorValues.push(roundedColorValue);
+            }
+            return true;
+        }
+
+
+
+        function finishLoadingContainer(){
+            var addContainerDetailsButton = document.getElementById("addContainerDetails");
+            var fin = document.getElementById("final");
+
+            var addContainerDetailsIcon = document.getElementById("addContainerDetailsIcon");
+            addContainerDetailsIcon.src = "{% static 'images/tick.png' %}";
+            addContainerDetailsButton.style.backgroundColor = '#cffbbf'
+            var content = addContainerDetailsButton.nextElementSibling;
+            content.style.display = "none";
+            final.classList.add("highlight-button");
+            // final.classList.remove("highlight-button");
+            // validateForm();
+
+            return;
+        }
+    
+
+        function finishLoading() {
+            var addLoadDetailsButton = document.getElementById("addLoadDetailsButton");
+            var addLoadDetailsIcon = document.getElementById("addLoadDetailsIcon");
+            var val = validateForm();
+            var uniqueColors = checkDuplicateColors();
+
+            var content = addLoadDetailsButton.nextElementSibling;
+            if (val && uniqueColors) {
+                content.style.display = "none";
+                addLoadDetailsIcon.src = "{% static 'images/tick.png' %}";
+                addContainerDetailsIcon.src = "{% static 'images/unlock.png' %}";
+                addLoadDetailsButton.style.backgroundColor = '#cffbbf'
+                document.getElementById("warningMessage").style.display = "none";
+            }
+        }
+
+        function addSku() {
+            var form = document.getElementById("productForm");
+            var cont = document.getElementById("numTypes");
+            if (Number(cont.value) + 1 > 3) {
+                alert("Cannot Add more than 3 SKUs!");
+                return;
+            }
+            cont.value = Number(cont.value) + Number(1);
+
+            for (var i = 2; i < 3; i++) {
+                var rowDiv = document.createElement("div");
+                rowDiv.classList.add("input-row");
+
+                var colorPickerDiv = document.createElement("div");
+                colorPickerDiv.id = "colorPicker" + i;
+                rowDiv.appendChild(colorPickerDiv);
+
+                var colorInput = document.createElement("input");
+                colorInput.type = "hidden";
+                colorInput.name = "color" + i;
+                colorInput.id = "colorInput" + i;
+                rowDiv.appendChild(colorInput);
+
+                var skuInput = createInput("Product " + (i + 1) + ":", "text", "sku" + i, "Box" + (i + 1));
+                skuInput.querySelector('input').required = true;
+                rowDiv.appendChild(skuInput);
+
+                rowDiv.appendChild(createInput("Gross Weight (KGs):", "text", "grossWeight" + i, autoFillerBox[i]["Gross Weight"]));
+                rowDiv.appendChild(createInput("Length (mm):", "text", "length" + i, autoFillerBox[i]["Length"]));
+                rowDiv.appendChild(createInput("Width (mm):", "text", "width" + i, autoFillerBox[i]["Width"]));
+                rowDiv.appendChild(createInput("Height  (mm):", "text", "height" + i, autoFillerBox[i]["Height"]));
+                rowDiv.appendChild(createInput("Number of Cases:", "text", "numberOfCases" + i, autoFillerBox[i]["Number of Cases"]));
+
+                rowDiv.appendChild(createInput("", "hidden", "volume" + i, autoFillerBox[i]["Volume"]));
+                rowDiv.appendChild(createInput("", "hidden", "temperature" + i, autoFillerBox[i]["Temperature"]));
+                rowDiv.appendChild(createInput("", "hidden", "netWeight" + i, autoFillerBox[i]["Net Weight"]));
+
+                var rotationCell = createInput("Tilt Allowed:", "checkbox", "rotationAllowed" + i);
+                rotationCell.classList.add("checkbox-label");
+                rotationCell.querySelector('input').checked = autoFillerBox[i]["Rotation Allowed"];
+                rowDiv.appendChild(rotationCell);
+
+                var deleteBtn = document.createElement("img");
+                deleteBtn.src =  "{% static 'images/delete.png' %}";
+                deleteBtn.classList.add("delete-img");
+                deleteBtn.addEventListener("click", function() {
+                    deleteInputRow(rowDiv);
+                });
+                rowDiv.appendChild(deleteBtn);
+
+                form.appendChild(rowDiv);
+                initializeColorPicker(colorPickerDiv.id, colorInput.id);
+            }
+        }
+
+        function closePopup() {
+            var popup = document.getElementById("popup");
+            var blurredBackground = document.getElementById("blurredBackground");
+            popup.style.display = "none";
+            blurredBackground.style.display = "none";
+        }
+
+        // var colors = [
+        //         {name: "Red", value: "#FF0000"},
+        //         {name: "Green", value: "#00FF00"},
+        //         {name: "Blue", value: "#0000FF"},
+        //         {name: "Yellow", value: "#FFFF00"},
+        //         {name: "Black", value: "#000000"},
+        //         {name: "White", value: "#FFFFFF"},
+        //         {name: "Orange", value: "#FFA500"},
+        //         {name: "Purple", value: "#800080"},
+        //         {name: "Pink", value: "#FFC0CB"},
+        //         {name: "Brown", value: "#A52A2A"},
+        //         {name: "Gray", value: "#808080"},
+        //         {name: "Cyan", value: "#00FFFF"}
+        //     ];
+
+            
+    
+       
+
+        function generateInputs() {
+            var form = document.getElementById("productForm");
+
+            form.innerHTML = "";
+
+        
+
+            for (var i = 0; i < 3; i++) {
+                var rowDiv = document.createElement("div");
+                rowDiv.classList.add("input-row");
+
+                var colorPickerDiv = document.createElement("div");
+                colorPickerDiv.id = "colorPicker" + i;
+                rowDiv.appendChild(colorPickerDiv);
+
+                var colorInput = document.createElement("input");
+                colorInput.type = "hidden";
+                colorInput.name = "color" + i;
+                colorInput.id = "colorInput" + i;
+                rowDiv.appendChild(colorInput);
+
+                var skuInput = createInput("Product " + (i + 1) + ":", "text", "sku" + i, "Box" + (i + 1));
+                skuInput.querySelector('input').required = true;
+                rowDiv.appendChild(skuInput);
+
+                rowDiv.appendChild(createInput("Gross Weight (KGs):", "text", "grossWeight" + i, autoFillerBox[i]["Gross Weight"]));
+                rowDiv.appendChild(createInput("Length (mm):", "text", "length" + i, autoFillerBox[i]["Length"]));
+                rowDiv.appendChild(createInput("Width (mm):", "text", "width" + i, autoFillerBox[i]["Width"]));
+                rowDiv.appendChild(createInput("Height  (mm):", "text", "height" + i, autoFillerBox[i]["Height"]));
+                rowDiv.appendChild(createInput("Number of Cases:", "text", "numberOfCases" + i, autoFillerBox[i]["Number of Cases"]));
+
+                rowDiv.appendChild(createInput("", "hidden", "volume" + i, autoFillerBox[i]["Volume"]));
+                rowDiv.appendChild(createInput("", "hidden", "temperature" + i, autoFillerBox[i]["Temperature"]));
+                rowDiv.appendChild(createInput("", "hidden", "netWeight" + i, autoFillerBox[i]["Net Weight"]));
+
+                var rotationCell = createInput("Tilt Allowed:", "checkbox", "rotationAllowed" + i);
+                rotationCell.classList.add("checkbox-label");
+                rotationCell.querySelector('input').checked = autoFillerBox[i]["Rotation Allowed"];
+                rowDiv.appendChild(rotationCell);
+
+                var deleteBtn = document.createElement("img");
+                deleteBtn.src =  "{% static 'images/delete.png' %}";
+                deleteBtn.classList.add("delete-img");
+                deleteBtn.addEventListener("click", function() {
+                    deleteInputRow(rowDiv);
+                });
+                rowDiv.appendChild(deleteBtn);
+
+                form.appendChild(rowDiv);
+                initializeColorPicker(colorPickerDiv.id, colorInput.id);
+            }
+            // console.log(document.getElementById("colorInput0").name);
+
+        }
+        function deleteInputRow(rowDiv) {
+            var form = document.getElementById("productForm");
+            var cont = document.getElementById("numTypes");
+            if(Number(cont.value) - 1 <2 ){
+                alert("You need to keep atleast 2 SKU!");
+                return;
+            }
+            cont.value = Number(cont.value) - 1;
+            rowDiv.parentElement.removeChild(rowDiv); // Remove the parent of the button clicked
+
+            var rows = form.getElementsByClassName("input-row");
+            if (rows.length === 0) {
+                alert("At least one SKU must be present.");
+            }
+        }
+
+        function createInput(labelText, type = "text", name = "", value = "") {
+            var label = document.createElement("label");
+            label.textContent = labelText;
+            label.classList.add("input");
+
+            var input = document.createElement("input");
+            input.type = type;
+            input.name = name;
+            input.required = true;
+
+            if (type !== "checkbox") {
+                input.value = (value);
+            }
+
+            if (type === "hidden") {
+                label.style.display = "none";
+            }
+
+            label.appendChild(input);
+            return label;
+        }
+
+
+        var truck_specs = {
+            "General Purpose container 20'": {
+                "length_container": 5900,
+                "width_container": 2352,
+                "height_container": 2393,
+                "max_weight": 32500,
+                "image": "{% static 'images/container_20.png' %}"
+            },
+            "General Purpose container 40'": {
+                "length_container": 12032,
+                "width_container": 2352,
+                "height_container": 2393,
+                "max_weight": 26500,
+                "image": "{% static 'images/container_40.png' %}"
+            },
+            "High - Cube General Purpose container 40'": {
+                "length_container": 12032,
+                "width_container": 2352,
+                "height_container": 2698,
+                "max_weight": 26500,
+                "image": "{% static 'images/high_container_40.png' %}"
+            }
+            // "Custom Container": {
+            //     "length_container": null,
+            //     "width_container": null,
+            //     "height_container": null,
+            //     "max_weight": null,
+            //     "image": null
+            // }
+        };
+
+        var autoFillerBox = [
+            {
+                "Gross Weight": 0.78,
+                "Net Weight": 0.58,
+                "Volume": 0.023,
+                "Temperature": 1,
+                "Length": 396,
+                "Width": 199,
+                "Height": 287,
+                "Number of Cases": 600,
+                "Rotation Allowed": 1
+            },
+            {
+                "Gross Weight": 1.5,
+                "Net Weight": 1.2,
+                "Volume": 0.050,
+                "Temperature": 2,
+                "Length": 400,
+                "Width": 200,
+                "Height": 300,
+                "Number of Cases": 400,
+                "Rotation Allowed": 1
+            },
+            {
+                "Gross Weight": 2.0,
+                "Net Weight": 1.6,
+                "Volume": 0.075,
+                "Temperature": 3,
+                "Length": 450,
+                "Width": 250,
+                "Height": 350,
+                "Number of Cases": 500,
+                "Rotation Allowed": 1
+            }
+        ];
+
+        function generateTypeInputs() {
+    var totalContainers = document.getElementById("totalContainers").value;
+    var typeInputsDiv = document.getElementById("typeInputs");
+    var contentInfoDiv = document.getElementById("containerDetails");
+
+    typeInputsDiv.innerHTML = "";
+
+    for (var i = 0; i < totalContainers; i++) {
+        var containerDiv = document.createElement("div");
+        containerDiv.classList.add("container-row");
+
+        var typeLabel = document.createElement("label");
+        typeLabel.textContent = "Type of Container " + (i + 1) + ":";
+        typeLabel.classList.add("container-type-label");
+        containerDiv.appendChild(typeLabel);
+
+        var typeSelect = document.createElement("select");
+        typeSelect.name = "containerType" + (i + 1);
+        typeSelect.required = true;
+        typeSelect.classList.add("container-type-select");
+        typeSelect.onchange = updateTypeOptions;
+        containerDiv.appendChild(typeSelect);
+
+        for (var type in truck_specs) {
+            var option = document.createElement("option");
+            option.value = type;
+            option.text = type;
+            typeSelect.appendChild(option);
+        }
+
+        var containerType = typeSelect.value;
+        var containerData = truck_specs[containerType];
+
+        // Append the container input row to the typeInputsDiv
+        typeInputsDiv.appendChild(containerDiv);
+
+        // Create a div to hold the image and dimensions label
+        var infoDiv = document.createElement("div");
+        infoDiv.classList.add("container-info");
+        infoDiv.style.textAlign = "center"; // Center align content within this div
+
+        // Create and add the container image to the content-info div
+        var image = document.createElement("img");
+        image.id = "containerImage" + (i + 1);
+        image.src = containerData.image; // Set the image source
+        image.alt = "Container Image " + (i + 1);
+        image.classList.add("container-image");
+        infoDiv.appendChild(image);
+
+        // Create and add the dimensions label to the content-info div
+        var dimensionsLabel = document.createElement("label");
+        dimensionsLabel.id = "containerDimensions" + (i + 1);
+        dimensionsLabel.textContent = "Dimensions (LxWxH): " + containerData.length_container + " x " + containerData.width_container + " x " + containerData.height_container;
+        dimensionsLabel.classList.add("container-dimensions-label");
+        infoDiv.appendChild(dimensionsLabel);
+
+        // Append the infoDiv to the content-info div
+        contentInfoDiv.appendChild(infoDiv);
+    }
+}
+
+function updateTypeOptions(event) {
+    var selectElement = event.target;
+    var selectedOption = selectElement.value;
+
+    // Find the closest container-row div
+    var containerRowDiv = selectElement.closest(".container-row");
+
+    // Determine the index of the container
+    var index = Array.prototype.indexOf.call(containerRowDiv.parentElement.children, containerRowDiv) + 1;
+
+    // Get the selected container type's data from truck_specs
+    var containerData = truck_specs[selectedOption];
+
+    // Update the container image in the content-info div
+    if (containerData && containerData.image) {
+        var image = document.getElementById("containerImage" + index);
+        if (image) {
+            image.src = containerData.image; // Update the image source
+        }
+    }
+
+    // Update the dimensions label in the content-info div
+    if (containerData) {
+        var dimensionsLabel = document.getElementById("containerDimensions" + index);
+        if (dimensionsLabel) {
+            dimensionsLabel.textContent = "Dimensions (LxWxH): " + containerData.length_container + " x " + containerData.width_container + " x " + containerData.height_container;
+        }
+    }
+}
+
+
+        function getTruckDimensions(selectedOption) {
+            var specs = truck_specs[selectedOption];
+            if (specs && specs.length_container && specs.width_container && specs.height_container && specs.max_weight) {
+                var dimensions = "Length: " + specs.length_container + "mm, Width: " + specs.width_container + "mm, Height: " + specs.height_container + "mm, Max Weight: " + specs.max_weight + "kg";
+                return dimensions;
+            }
+            return null;
+        }
+    </script>
+</body>
+</html>
