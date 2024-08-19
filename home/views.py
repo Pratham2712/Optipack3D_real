@@ -10,6 +10,7 @@ from django.db import IntegrityError
 from home.decorators import custom_login_required
 import random
 from django.http import JsonResponse
+from django.middleware.csrf import get_token
 from django.views.decorators.csrf import csrf_exempt
 import json
 from home.utils import save_data_to_files,DataProcess,perform_computation
@@ -42,7 +43,10 @@ truck_specs = {
     # Add more specifications as needed
 }
 
-
+def get_csrf_token(request):
+    csrf_token = get_token(request)
+    return JsonResponse({'csrftoken': csrf_token})
+    
 def generate_unique_user_id():
     while True:
         # Generate a random six-digit number
