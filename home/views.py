@@ -18,7 +18,7 @@ from copy import deepcopy
 import pandas as pd
 import math
 import re
-
+from django.views.decorators.csrf import csrf_protect
 truck_specs = {
     "General Purpose container 20'": {
         "length_container":5900,
@@ -182,7 +182,7 @@ def add_container(request):
 def manageUsers(request):
     return render(request, 'manageUsers.html')
 
-
+@csrf_exempt
 def freeOutput(request):
     if request.method == 'POST':
         num_types = request.POST.get('numTypes')
@@ -329,7 +329,7 @@ def freeOutput(request):
 
             index_ = 0
             prev = -1
-            while roll > 0:
+            while int(roll) > 0:
                 filename, df,packaging_density,vol_occ_curr,perc_wasted,vol_container,box_coords, container_inf = perform_computation(df, container_toFit, strip_list, keys, index_)
                 curr = []
                 # num_placed.append((df['TotalNumStrips'][index_]-df['Rem_Strips'][index_])*df['NumOfBoxesPerStrip'][index_])
