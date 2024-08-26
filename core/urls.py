@@ -20,6 +20,7 @@ from home.views import *
 from django.conf import settings
 from django.contrib.auth import views as auth_views
 from django.conf.urls.static import static
+from home.views import get_csrf_token
 
 urlpatterns = [
     path('', home, name="home"),
@@ -33,7 +34,8 @@ urlpatterns = [
     path('manageUsers/', manageUsers, name='manageUsers'),
     path('additionalInformation/', additionalInformation, name='additionalInformation'),
     path('freeOutput/', freeOutput, name='freeOutput'),
-    path('enquire/', enquire, name='enquire')
+    path('enquire/', enquire, name='enquire'),
+    path('get-csrf-token/', get_csrf_token, name='get-csrf-token'),
 
 ]
 

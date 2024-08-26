@@ -131,7 +131,10 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',  # Default backend
     'home.authentication.EmailBackend',  # Custom email-based backend
 ]
-
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_HTTPONLY = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # Adjust this according to your React app's URL
 ]
