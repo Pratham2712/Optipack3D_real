@@ -1,3 +1,4 @@
 Gross Weight (in KGs),Net Weight (in KGs),Volume (in m^3),Temperature (in deg  C),Length (in mm),Width (in mm),Height (in mm),Number of Cases,"Rotation Allowed (1 - YES, 0 - NO)",color
 0.78,0.58,0.023,1,396,199,287,600,1,#F44336
 1.5,1.2,0.05,2,400,200,300,400,1,#4CAF50
+2,1.6,0.075,3,450,250,350,500,1,#2196F3

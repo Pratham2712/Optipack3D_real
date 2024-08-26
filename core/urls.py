@@ -24,6 +24,7 @@ from home.views import get_csrf_token
 
 urlpatterns = [
     path('', home, name="home"),
+    path('freeOutput', freeOutput, name='freeOutput'),
     path('freeTrial/', freeTrial, name='freeTrial'),
     path('join/', joinCreateOrganisation, name='joinCreateOrganisation'),  # Updated name for join/create organisation
     path('login/', login_view, name='login'),  # Use distinct view function for login
@@ -33,9 +34,8 @@ urlpatterns = [
     path('logout/', logout_view, name='logout'),
     path('manageUsers/', manageUsers, name='manageUsers'),
     path('additionalInformation/', additionalInformation, name='additionalInformation'),
-    path('freeOutput/', freeOutput, name='freeOutput'),
     path('enquire/', enquire, name='enquire'),
-    path('get-csrf-token/', get_csrf_token, name='get-csrf-token'),
+    path('get_csrf_token/', get_csrf_token, name='get_csrf_token'),
 
 ]
 
