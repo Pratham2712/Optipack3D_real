@@ -9,6 +9,9 @@ import { GLTFLoader } from '/static/node_modules/three/examples/jsm/loaders/GLTF
 document.addEventListener('DOMContentLoaded', () => {
     const threedPath = window.threedPath;
     const containerInfPath = window.containerInfPath;
+    console.log("threedPath",window.threedPath);
+    console.log("containerINf",window.containerInfPath);
+    
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);

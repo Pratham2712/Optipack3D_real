@@ -25,15 +25,18 @@ from home.views import get_csrf_token
 urlpatterns = [
     path('', home, name="home"),
     path('freeOutput', freeOutput, name='freeOutput'),
+    path('freeOutputJson', freeOutputJson, name='freeOutputJson'),
     path('freeTrial/', freeTrial, name='freeTrial'),
     path('join/', joinCreateOrganisation, name='joinCreateOrganisation'),  # Updated name for join/create organisation
     path('login/', login_view, name='login'),  # Use distinct view function for login
+    path('loginJson', login_viewJson, name='loginJson'),  # Use distinct view function for login
     path('admin/', admin.site.urls),
     path('dashboard/', dashboard, name='dashboard'),
     path('profile/', profile, name='profile'),
     path('logout/', logout_view, name='logout'),
     path('manageUsers/', manageUsers, name='manageUsers'),
     path('additionalInformation/', additionalInformation, name='additionalInformation'),
+    path('additionalInformationJson', additionalInformationJson, name='additionalInformationJson'),
     path('enquire/', enquire, name='enquire'),
     path('get_csrf_token/', get_csrf_token, name='get_csrf_token'),
 
