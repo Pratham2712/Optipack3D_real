@@ -487,7 +487,7 @@ def freeOutput(request):
             'df':df_ht
             
         }
-        # print(context)
+        print(context)
         # print(num_placed)
         return render(request, 'freeOutput.html', context)  # Redirect to a success page
     return render(request, 'freeOutput.html')
@@ -697,7 +697,8 @@ def freeOutputJson(request):
                 df['Length'][i],
                 df['Width'][i],
                 df['Height'][i],
-                df['NumOfBoxesPerStrip'][i]
+                df['NumOfBoxesPerStrip'][i],
+
             ])
         # print(box_info)
 

@@ -84,29 +84,29 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 # for local machine 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": "containerbuilder3d",
-        "USER": "root",
-        "PASSWORD": "Pratham@2712",
-        "HOST": "127.0.0.1",
-        "PORT": "3306",
-    }
-}
-
-#for aws
-
 # DATABASES = {
 #     "default": {
 #         "ENGINE": "django.db.backends.mysql",
-#         "NAME": "optipack3d",
-#         "USER": "admin",
-#         "PASSWORD": "optipack3d",
-#         "HOST": "djangodb.ctciugsk4l54.ap-south-1.rds.amazonaws.com",
+#         "NAME": "containerbuilder3d",
+#         "USER": "root",
+#         "PASSWORD": "Pratham@2712",
+#         "HOST": "127.0.0.1",
 #         "PORT": "3306",
 #     }
 # }
+
+#for aws
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "optipack3d",
+        "USER": "admin",
+        "PASSWORD": "optipack3d",
+        "HOST": "djangodb.ctciugsk4l54.ap-south-1.rds.amazonaws.com",
+        "PORT": "3306",
+    }
+}
 
 
 # Password validation
