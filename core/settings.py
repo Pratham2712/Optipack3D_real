@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'corsheaders',
 ]
 
+
+
 EXTERNAL_APPS = [
     'home',
 ]
@@ -84,16 +86,28 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 # for local machine 
+
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.mysql",
+        "ENGINE": "mysql.connector.django",
         "NAME": "containerbuilder3d",
-        "USER": "root",
-        "PASSWORD": "Pratham@2712",
-        "HOST": "127.0.0.1",
+        "USER": "developer",
+        "PASSWORD": "Test@4321",
+        "HOST": "13.202.4.1",
         "PORT": "3306",
     }
 }
+
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.mysql",
+#         "NAME": "containerbuilder3d",
+#         "USER": "root",
+#         "PASSWORD": "abcd1234",
+#         "HOST": "127.0.0.1",
+#         "PORT": "3306",
+#     }
+# }
 
 #for aws
 
