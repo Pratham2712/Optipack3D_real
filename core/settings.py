@@ -92,8 +92,8 @@ DATABASES = {
         "ENGINE": "mysql.connector.django",
         "NAME": "containerbuilder3d",
         "USER": "developer",
-        "PASSWORD": "Test@4321",
-        "HOST": "13.202.4.1",
+        "PASSWORD": "Test@1234",
+        "HOST": "127.0.0.1",
         "PORT": "3306",
     }
 }
