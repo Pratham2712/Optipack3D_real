@@ -25,9 +25,9 @@ ENV/
 */migrations/*
 
 # Media and static files
-media/
-staticfiles/
-static/
+*/media/
+*/staticfiles/
+*/static/
 
 # Local settings
 local_settings.py
