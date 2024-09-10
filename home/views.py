@@ -21,7 +21,6 @@ import re
 from django.views.decorators.csrf import csrf_protect
 import numpy as np
 import os
-from core.settings import BASE_DIR
 
 
 truck_specs = {
@@ -141,7 +140,7 @@ def additionalInformationJson(request):
         user_exists = Users.objects.filter(email_id=email).exists()
         if user_exists:
             messages.error(request, "An account with this email already exists.")
-            return JsonResponse({"ERROR": "An account with this email already exists."}, status=400)    
+            return JsonResponse({"ERROR": "An account with this email already exists."}, status=400)
 
         # Create a new user
         user = Users(
@@ -488,7 +487,7 @@ def freeOutput(request):
             'df':df_ht
             
         }
-        print(context)
+        # print(context)
         # print(num_placed)
         return render(request, 'freeOutput.html', context)  # Redirect to a success page
     return render(request, 'freeOutput.html')
@@ -698,8 +697,7 @@ def freeOutputJson(request):
                 df['Length'][i],
                 df['Width'][i],
                 df['Height'][i],
-                df['NumOfBoxesPerStrip'][i],
-
+                df['NumOfBoxesPerStrip'][i]
             ])
         # print(box_info)
 
@@ -711,11 +709,9 @@ def freeOutputJson(request):
         # print(threed_boxes)
         # print(container_inf)
     threed_data = []
-    # base_dir = r'home\static\files'
-    base_dir = BASE_DIR
+    base_dir = r'home\static\files'
     for path in threed_boxes:
         full_path = os.path.join(base_dir, os.path.basename(path))
-        print(full_path)
         try:
             with open(full_path, 'r') as file:
                 threed_data.append(json.load(file))
