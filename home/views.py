@@ -711,7 +711,8 @@ def freeOutputJson(request):
         # print(container_inf)
     threed_data = []
     # base_dir = r'home\static\files'
-    base_dir = BASE_DIR
+    # base_dir = BASE_DIR
+    base_dir = "/home/ec2-user/Optipack3D_real"
     print("**************BASE DIR ************ -> ", BASE_DIR)
     print("**************STATIC_URL ************ -> ", STATIC_URL)
 
