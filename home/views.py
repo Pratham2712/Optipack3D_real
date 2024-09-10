@@ -712,13 +712,13 @@ def freeOutputJson(request):
     threed_data = []
     # base_dir = r'home\static\files'
     # base_dir = BASE_DIR
-    base_dir = "/home/ec2-user/Optipack3D_real"
+    base_dir = "/home/ec2-user/Optipack3D_real/static/"
     print("**************BASE DIR ************ -> ", BASE_DIR)
     print("**************STATIC_URL ************ -> ", STATIC_URL)
 
     for path in threed_boxes:
         print("**************path ************ -> ", path)
-        full_path = os.path.join(base_dir, STATIC_URL, path)
+        full_path = os.path.join(base_dir, path)
         print("full path ********************* -> ", full_path)
         try:
             with open(full_path, 'r') as file:
@@ -727,7 +727,7 @@ def freeOutputJson(request):
             return JsonResponse({"error": f"File not found: {full_path}"}, status=404)
     containerList = []
     for path in container_list:
-        full_path = os.path.join(base_dir, STATIC_URL, path)
+        full_path = os.path.join(base_dir, path)
         try:
             with open(full_path, 'r') as file:
                 containerList.append(json.load(file))
