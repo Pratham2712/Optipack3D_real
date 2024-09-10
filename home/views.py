@@ -717,7 +717,7 @@ def freeOutputJson(request):
 
     for path in threed_boxes:
         print("**************path ************ -> ", path)
-        full_path = os.path.join(base_dir, STATIC_URL, os.path.basename(path))
+        full_path = os.path.join(base_dir, STATIC_URL, path)
         print("full path ********************* -> ", full_path)
         try:
             with open(full_path, 'r') as file:
@@ -726,7 +726,7 @@ def freeOutputJson(request):
             return JsonResponse({"error": f"File not found: {full_path}"}, status=404)
     containerList = []
     for path in container_list:
-        full_path = os.path.join(base_dir, STATIC_URL, os.path.basename(path))
+        full_path = os.path.join(base_dir, STATIC_URL, path)
         try:
             with open(full_path, 'r') as file:
                 containerList.append(json.load(file))
