@@ -712,8 +712,14 @@ def freeOutputJson(request):
     threed_data = []
     # base_dir = r'home\static\files'
     base_dir = BASE_DIR
+    print("**************BASE DIR ************ -> ", BASE_DIR)
+    print("**************STATIC_URL ************ -> ", STATIC_URL)
+    print("**************path ************ -> ", path)
+
     for path in threed_boxes:
+
         full_path = os.path.join(base_dir, STATIC_URL, os.path.basename(path))
+        print("full path ********************* -> ", full_path)
         try:
             with open(full_path, 'r') as file:
                 threed_data.append(json.load(file))
