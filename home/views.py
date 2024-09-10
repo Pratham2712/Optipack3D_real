@@ -21,7 +21,7 @@ import re
 from django.views.decorators.csrf import csrf_protect
 import numpy as np
 import os
-from core.settings import BASE_DIR
+from core.settings import BASE_DIR, STATIC_URL
 
 
 truck_specs = {
@@ -711,7 +711,7 @@ def freeOutputJson(request):
         # print(container_inf)
     threed_data = []
     # base_dir = r'home\static\files'
-    base_dir = BASE_DIR
+    base_dir = BASE_DIR + STATIC_URL
     for path in threed_boxes:
         full_path = os.path.join(base_dir, os.path.basename(path))
         try:
