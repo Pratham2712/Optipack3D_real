@@ -39,6 +39,8 @@ urlpatterns = [
     path('additionalInformationJson', additionalInformationJson, name='additionalInformationJson'),
     path('enquire/', enquire, name='enquire'),
     path('get_csrf_token/', get_csrf_token, name='get_csrf_token'),
+    path('send_otp_to_email', send_otp_to_email, name='send_otp_to_email'),
+    path('verify_otp', verify_otp, name='verify_otp'),
 
 ]
 

@@ -20,6 +20,8 @@ import math
 import re
 from django.views.decorators.csrf import csrf_protect
 import numpy as np
+from django.core.mail import send_mail
+from django.utils import timezone
 import os
 
 
@@ -68,7 +70,6 @@ def freeTrial(request):
 
 def joinCreateOrganisation(request):
     return render(request, 'loginSignup.html')  # Assuming this is your join/create organisation template
-
 
 def additionalInformation(request):
     if request.method == 'POST':
@@ -751,3 +752,73 @@ def freeOutputJson(request):
         return JsonResponse(context, safe=False)  # Redirect to a success page
     # return render(request, 'freeOutput.html')
     return JsonResponse({"error": "Invalid request"}, status=400)
+
+def send_otp_to_email(request):
+    # Step 1: Get the email from the request (assuming it's a POST request)
+    email_id = request.POST.get('email')
+    
+    if not email_id:
+        return JsonResponse({"ERROR": "Company Email is required"}, status=400)
+    
+    # Step 2: Generate a 6-digit OTP
+    otp = str(random.randint(100000, 999999))
+
+    # Step 3: Save OTP and email_id in the database
+    otp_entry, created = OTPRegistration.objects.get_or_create(email_id=email_id)
+    
+    # If OTP entry exists, update the fields
+    otp_entry.otp = otp
+    otp_entry.isVerified = False
+    otp_entry.otp_sent_time = timezone.now()
+    otp_entry.expired = False
+    otp_entry.save()
+
+    # Step 4: Send the OTP via email
+    subject = 'Your OTP Code'
+    message = f'Your OTP code is {otp}. It is valid for 15 minutes.'
+    email_from = 'masterpalace12345@gmail.com'
+    recipient_list = [email_id]
+    
+    try:
+        send_mail(subject, message, email_from, recipient_list)
+        return JsonResponse({"SUCCESS": "OTP send successfully"}, status=200)
+    except Exception as e:
+        return JsonResponse({"ERROR": f"Failed to send OTP. Error: {str(e)}"}, status=500)
+
+def verify_otp(request):
+    # Step 1: Get the email and otp from the request
+    email_id = request.POST.get('email')
+    otp_input = request.POST.get('otp')
+    
+    if not email_id or not otp_input:
+        return JsonResponse({"ERROR": "Email and OTP are required"}, status=400)
+    
+    try:
+        # Step 2: Fetch the latest OTP entry for the given email
+        otp_entry = OTPRegistration.objects.filter(email_id=email_id).latest('otp_sent_time')
+        
+        # Step 5: Check if the OTP is valid
+        if otp_entry.otp != otp_input:
+            return JsonResponse({"ERROR": "Invalid OTP"}, status=400)
+        # Step 3: Check if the OTP has already been verified
+        if otp_entry.isVerified:
+            return JsonResponse({"ERROR": "OTP has already been verified"}, status=400)
+        time_difference = timezone.now() - otp_entry.otp_sent_time
+        # Step 4: Check if the OTP is expired
+        if otp_entry.expired:
+            return JsonResponse({"ERROR": "OTP has expired"}, status=400)
+        
+        if time_difference > timedelta(minutes=15):
+            # Mark the OTP as expired
+            otp_entry.expired = True
+            otp_entry.save()
+            return JsonResponse({"ERROR": "OTP has expired"}, status=400)
+        
+        # Step 6: Mark OTP as verified
+        otp_entry.isVerified = True
+        otp_entry.save()
+
+        return JsonResponse({"SUCCESS": "OTP verified successfully"}, status=200)
+    
+    except OTPRegistration.DoesNotExist:
+        return JsonResponse({"ERROR": "No OTP found for this email"}, status=404)

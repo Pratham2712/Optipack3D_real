@@ -1,7 +1,8 @@
 from django.db import models
 from django.contrib.auth.hashers import make_password, check_password
 import random
-
+from django.utils import timezone
+from datetime import timedelta
 
 # class Container(models.Model):
 #     container_name= models.CharField(max_length=50)
@@ -50,8 +51,11 @@ class Company(models.Model):
     # choice_of_container = models.cha
     standard_source = models.CharField(max_length=100, choices=standard_source_choices)
     standard_destination = models.CharField(max_length=100,choices=standard_destination_choices)
+    user_count = models.PositiveIntegerField(default=0)
 
     def save(self, *args, **kwargs):
+        if self.user_count > 2:
+            raise ValidationError("user_count cannot exceed 10.")
         if not self.company_code:
             self.company_code = self.generate_unique_code()
         super(Company, self).save(*args, **kwargs)
@@ -211,6 +215,22 @@ class LoadPlan(models.Model):
             }
             sku_details.append(detail)
         return sku_details
+
+class OTPRegistration(models.Model):
+    email_id = models.EmailField(max_length=255, unique=True)  # Store the user's email
+    otp = models.CharField(max_length=6)  # Store the OTP
+    isVerified = models.BooleanField(default=False)  # To check if the OTP is verified
+    otp_sent_time = models.DateTimeField(default=timezone.now)  # Time when OTP was sent
+    expired = models.BooleanField(default=False)  # To track if the OTP is expired
+
+    def save(self, *args, **kwargs):
+        # Automatically set expired flag if OTP is older than 15 minutes
+        if timezone.now() > self.otp_sent_time + timedelta(minutes=15):
+            self.expired = True
+        super(OTPRegistration, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.email_id} - OTP: {self.otp} - Verified: {self.isVerified} - Expired: {self.expired}"
 
 
 
