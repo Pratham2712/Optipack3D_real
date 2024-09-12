@@ -23,6 +23,9 @@ import numpy as np
 from django.core.mail import send_mail
 from django.utils import timezone
 import os
+import jwt
+from datetime import timedelta, datetime
+from core.settings import SECRET_KEY
 
 
 truck_specs = {
@@ -48,6 +51,15 @@ truck_specs = {
     },
     # Add more specifications as needed
 }
+# SECRET_KEY = settings.SECRET_KEY 
+def generate_jwt_token(email_id):
+    expiration_time = datetime.utcnow() + timedelta(hours=1)  # Token expires in 1 hour
+    payload = {
+        'email': email_id,
+        'exp': expiration_time  # Expiration time for the token
+    }
+    token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+    return token
 
 def get_csrf_token(request):
     csrf_token = get_token(request)
@@ -753,6 +765,14 @@ def freeOutputJson(request):
     # return render(request, 'freeOutput.html')
     return JsonResponse({"error": "Invalid request"}, status=400)
 
+def check_email(request):
+    email_id = request.POST.get('email')
+    user_exists = Users.objects.filter(email_id=email_id).exists()
+    if user_exists:
+        return JsonResponse({"ERROR": "User already exist try login"}, status=400)
+    return JsonResponse({"SUCCESS": "New user"}, status=400)
+
+
 def send_otp_to_email(request):
     # Step 1: Get the email from the request (assuming it's a POST request)
     email_id = request.POST.get('email')
@@ -789,6 +809,7 @@ def verify_otp(request):
     # Step 1: Get the email and otp from the request
     email_id = request.POST.get('email')
     otp_input = request.POST.get('otp')
+    companyname = request.POST.get('company_name')
     
     if not email_id or not otp_input:
         return JsonResponse({"ERROR": "Email and OTP are required"}, status=400)
@@ -817,8 +838,98 @@ def verify_otp(request):
         # Step 6: Mark OTP as verified
         otp_entry.isVerified = True
         otp_entry.save()
+        company, created = Company.objects.get_or_create(company_name=companyname)
+    
+        if created and not company.company_code:
+            company.company_code = company.generate_unique_code()
+            company.save()
+        # Determine user type based on user count
+        if company.user_count == 0:
+            user_type = "Company_Admin"
+        else:
+            user_type = "Company_loader"
+        user = Users(
+            email_id=email_id,
+            user_id=generate_unique_user_id(),
+            user_first_name='DefaultFirstName',  # Replace with actual form data or defaults
+            user_last_name='DefaultLastName',    # Replace with actual form data or defaults
+            user_type=user_type,
+            user_status='Active',
+            is_authenticated=True,
+            company=company  # Associate with the created or retrieved company
+        )
+        user.save()
 
-        return JsonResponse({"SUCCESS": "OTP verified successfully"}, status=200)
+        # Update the user count in the company
+        company.user_count += 1
+        company.save()
+        token = generate_jwt_token(email_id)
+        print(token)
+        response = JsonResponse({"SUCCESS": "OTP verified successfully"}, status=200)
+        response.set_cookie(
+            'jwt_token',  
+            token,        
+            max_age=3600, 
+            httponly=True, 
+            secure=True,  
+            samesite='Lax' 
+        )
+        return response
+    
+    except OTPRegistration.DoesNotExist:
+        return JsonResponse({"ERROR": "No OTP found for this email"}, status=404)
+
+def verify_login(request):
+    # Step 1: Get the email and otp from the request
+    email_id = request.POST.get('email')
+    otp_input = request.POST.get('otp')
+    
+    if not email_id or not otp_input:
+        return JsonResponse({"ERROR": "Email and OTP are required"}, status=400)
+    
+    user_exists = Users.objects.filter(email_id=email_id).exists()
+    if not user_exists:
+        return JsonResponse({"ERROR": "User not registered"}, status=400)
+    try:
+        # Step 2: Fetch the latest OTP entry for the given email
+        otp_entry = OTPRegistration.objects.filter(email_id=email_id).latest('otp_sent_time')
+        
+        # Step 5: Check if the OTP is valid
+        if otp_entry.otp != otp_input:
+            return JsonResponse({"ERROR": "Invalid OTP"}, status=400)
+        # Step 3: Check if the OTP has already been verified
+        if otp_entry.isVerified:
+            return JsonResponse({"ERROR": "OTP has already been verified"}, status=400)
+        time_difference = timezone.now() - otp_entry.otp_sent_time
+        # Step 4: Check if the OTP is expired
+        if otp_entry.expired:
+            return JsonResponse({"ERROR": "OTP has expired"}, status=400)
+        
+        if time_difference > timedelta(minutes=15):
+            # Mark the OTP as expired
+            otp_entry.expired = True
+            otp_entry.save()
+            return JsonResponse({"ERROR": "OTP has expired"}, status=400)
+        
+        # Step 6: Mark OTP as verified
+        otp_entry.isVerified = True
+        otp_entry.save()
+        if user_exists:
+            token = generate_jwt_token(email_id)
+            response = JsonResponse({"SUCCESS": "OTP verified successfully"}, status=200)
+            response.set_cookie(
+                'jwt_token',  
+                token,        
+                max_age=3600, 
+                httponly=True, 
+                secure=True,  
+                samesite='Lax' 
+            )
+            return response
+        else :
+            return JsonResponse({"ERROR": "User not registered"}, status=400)
+        
+        print(token)
     
     except OTPRegistration.DoesNotExist:
         return JsonResponse({"ERROR": "No OTP found for this email"}, status=404)

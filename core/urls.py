@@ -41,7 +41,8 @@ urlpatterns = [
     path('get_csrf_token/', get_csrf_token, name='get_csrf_token'),
     path('send_otp_to_email', send_otp_to_email, name='send_otp_to_email'),
     path('verify_otp', verify_otp, name='verify_otp'),
-
+    path('verify_login', verify_login, name='verify_login'),
+    path('check_email', check_email, name='check_email'),
 ]
 
 #for aws enable 
