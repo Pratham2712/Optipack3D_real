@@ -43,6 +43,7 @@ urlpatterns = [
     path('verify_otp', verify_otp, name='verify_otp'),
     path('verify_login', verify_login, name='verify_login'),
     path('check_email', check_email, name='check_email'),
+    path('dashboard_admin', dashboard_admin, name='dashboard_admin'),
 ]
 
 #for aws enable 

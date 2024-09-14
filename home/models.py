@@ -54,7 +54,7 @@ class Company(models.Model):
     user_count = models.PositiveIntegerField(default=0)
 
     def save(self, *args, **kwargs):
-        if self.user_count > 10:
+        if self.user_count > 100:
             return JsonResponse({"ERROR": "Users limit exceeded"}, status=404)
             raise ValidationError("user_count cannot exceed 2.")
         if not self.company_code:

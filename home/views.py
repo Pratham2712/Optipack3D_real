@@ -53,7 +53,7 @@ truck_specs = {
 }
 # SECRET_KEY = settings.SECRET_KEY 
 def generate_jwt_token(email_id):
-    expiration_time = datetime.utcnow() + timedelta(hours=1)  # Token expires in 1 hour
+    expiration_time = datetime.utcnow() + timedelta(hours=1)
     payload = {
         'email': email_id,
         'exp': expiration_time  # Expiration time for the token
@@ -774,6 +774,9 @@ def check_email(request):
 
 
 def send_otp_to_email(request):
+    print(f"User email in view: {getattr(request, 'user_email', 'None')}")
+    if hasattr(request, 'user_email'):
+        return JsonResponse({'ERROR': f'Already logged in as {request.user_email}!'})
     # Step 1: Get the email from the request (assuming it's a POST request)
     email_id = request.POST.get('email')
     
@@ -872,7 +875,7 @@ def verify_otp(request):
             max_age=3600, 
             httponly=True, 
             secure=True,  
-            samesite='Lax' 
+            samesite='None' 
         )
         return response
     
@@ -923,7 +926,7 @@ def verify_login(request):
                 max_age=3600, 
                 httponly=True, 
                 secure=True,  
-                samesite='Lax' 
+                samesite='None' 
             )
             return response
         else :
@@ -933,3 +936,9 @@ def verify_login(request):
     
     except OTPRegistration.DoesNotExist:
         return JsonResponse({"ERROR": "No OTP found for this email"}, status=404)
+
+def dashboard_admin(request):
+    if hasattr(request, 'user_email'):
+        return JsonResponse({'SUCCESS': f'Welcome to the dashboard, {request.user_email}!'})
+    else:
+        return JsonResponse({'Error': 'Unauthorized access, please log in'}, status=401)
