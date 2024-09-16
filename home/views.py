@@ -804,7 +804,7 @@ def send_otp_to_email(request):
     
     try:
         send_mail(subject, message, email_from, recipient_list)
-        return JsonResponse({"SUCCESS": "OTP send successfully"}, status=200)
+        return JsonResponse({"SUCCESS": "OTP send successfully","sendTime":f"{otp_entry.otp_sent_time}"}, status=200)
     except Exception as e:
         return JsonResponse({"ERROR": f"Failed to send OTP. Error: {str(e)}"}, status=500)
 
