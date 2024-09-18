@@ -52,10 +52,11 @@ truck_specs = {
     # Add more specifications as needed
 }
 # SECRET_KEY = settings.SECRET_KEY 
-def generate_jwt_token(email_id):
+def generate_jwt_token(email_id,userType):
     expiration_time = datetime.utcnow() + timedelta(hours=1)
     payload = {
         'email': email_id,
+        'userType':userType,
         'exp': expiration_time  # Expiration time for the token
     }
     token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
@@ -866,9 +867,13 @@ def verify_otp(request):
         # Update the user count in the company
         company.user_count += 1
         company.save()
-        token = generate_jwt_token(email_id)
+        token = generate_jwt_token(email_id,user.user_type)
         print(token)
-        response = JsonResponse({"SUCCESS": "OTP verified successfully"}, status=200)
+        response = JsonResponse({"SUCCESS": {
+                'email': email_id,
+                'userType': user.user_type,
+                "message" : "OTP verified successfully"
+            }}, status=200)
         response.set_cookie(
             'jwt_token',  
             token,        
@@ -890,7 +895,7 @@ def verify_login(request):
     if not email_id or not otp_input:
         return JsonResponse({"ERROR": "Email and OTP are required"}, status=400)
     
-    user_exists = Users.objects.filter(email_id=email_id).exists()
+    user_exists = Users.objects.filter(email_id=email_id).first()
     if not user_exists:
         return JsonResponse({"ERROR": "User not registered"}, status=400)
     try:
@@ -918,8 +923,12 @@ def verify_login(request):
         otp_entry.isVerified = True
         otp_entry.save()
         if user_exists:
-            token = generate_jwt_token(email_id)
-            response = JsonResponse({"SUCCESS": "OTP verified successfully"}, status=200)
+            token = generate_jwt_token(email_id,user_exists.user_type)
+            response = JsonResponse({"SUCCESS": {
+                'email': email_id,
+                'userType': user_exists.user_type,
+                "message" : "OTP verified successfully"
+            }}, status=200)
             response.set_cookie(
                 'jwt_token',  
                 token,        
@@ -937,8 +946,59 @@ def verify_login(request):
     except OTPRegistration.DoesNotExist:
         return JsonResponse({"ERROR": "No OTP found for this email"}, status=404)
 
-def dashboard_admin(request):
+def check_login(request):
     if hasattr(request, 'user_email'):
-        return JsonResponse({'SUCCESS': f'Welcome to the dashboard, {request.user_email}!'})
+        return JsonResponse({'SUCCESS': {
+                'email': request.user_email,
+                'userType': request.userType,
+                "message" : "User is login"
+            }})
     else:
         return JsonResponse({'Error': 'Unauthorized access, please log in'}, status=401)
+
+def add_permission(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)  # Load JSON data from the request body
+            print(data)
+            for record in data:
+                company_name = record.get('company')
+                user_type_name = record.get('user_type')
+                dashboard_name = record.get('dashboard')
+                allowed = record.get('allowed')
+
+                # Step 1: Retrieve or create the related objects (Company, UserType, Dashboard)
+                company = Company.objects.get(company_name=company_name)
+                dashboard = Dashboard.objects.get(name=dashboard_name)
+                user_type = UserType.objects.get(name=user_type_name)
+
+                # Step 2: Check if a DashboardPermission record exists for this combination
+                permission, created = DashboardPermission.objects.get_or_create(
+                    company=company,
+                    user_type=user_type,
+                    dashboard=dashboard,
+                    defaults={'allowed': allowed}
+                )
+
+                # Step 3: If it exists, update the 'allowed' field if it's different
+                if not created:
+                    if permission.allowed != allowed:
+                        permission.allowed = allowed
+                        permission.save()
+            
+            permissions = DashboardPermission.objects.filter(company=company)
+            print("permissions")
+            print(permissions)
+
+            return JsonResponse({"SUCCESS": "Data processed successfully"}, status=200)
+
+        except Company.DoesNotExist:
+            return JsonResponse({"ERROR": f"Company '{company_name}' does not exist"}, status=400)
+        except UserType.DoesNotExist:
+            return JsonResponse({"ERROR": f"User type '{user_type_name}' does not exist"}, status=400)
+        except Dashboard.DoesNotExist:
+            return JsonResponse({"ERROR": f"Dashboard '{dashboard_name}' does not exist"}, status=400)
+        except Exception as e:
+            return JsonResponse({"ERROR": str(e)}, status=500)
+    
+    return JsonResponse({"ERROR": "Invalid request method"}, status=405)

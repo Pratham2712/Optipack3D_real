@@ -15,6 +15,18 @@ from datetime import timedelta
 #     def __str__(self):
 #         return self.container_name
 
+class UserType(models.Model):
+    name = models.CharField(max_length=50, unique=True, primary_key=True)  # e.g., 'Loading team', 'Load planner', etc.
+
+    def __str__(self):
+        return self.name
+
+class Dashboard(models.Model):
+    
+    name = models.CharField(max_length=100, unique=True,primary_key = True)  # e.g., 'CFR', 'One-time rate', etc.
+
+    def __str__(self):
+        return self.name
 
 
 class Company(models.Model):
@@ -52,7 +64,7 @@ class Company(models.Model):
     standard_source = models.CharField(max_length=100, choices=standard_source_choices)
     standard_destination = models.CharField(max_length=100,choices=standard_destination_choices)
     user_count = models.PositiveIntegerField(default=0)
-
+    
     def save(self, *args, **kwargs):
         if self.user_count > 100:
             return JsonResponse({"ERROR": "Users limit exceeded"}, status=404)
@@ -70,6 +82,17 @@ class Company(models.Model):
     def __str__(self):
         return self.company_name
 
+class DashboardPermission(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)  # Link to the company
+    user_type = models.ForeignKey(UserType, on_delete=models.CASCADE)  # Link to user type
+    dashboard = models.ForeignKey(Dashboard, on_delete=models.CASCADE)  # Link to dashboard
+    allowed = models.BooleanField(default=False)  # Permission: allowed or not allowed
+
+    class Meta:
+        unique_together = ('company', 'user_type', 'dashboard')  # Ensure unique permissions for each combo
+
+    def __str__(self):
+        return f"{self.user_type} - {self.dashboard} - {'Allowed' if self.allowed else 'Not Allowed'}"
 
 class SKU(models.Model):
     sku_code = models.CharField(max_length=50, unique=True,primary_key=True)
@@ -232,6 +255,8 @@ class OTPRegistration(models.Model):
 
     def __str__(self):
         return f"{self.email_id} - OTP: {self.otp} - Verified: {self.isVerified} - Expired: {self.expired}"
+
+
 
 
 

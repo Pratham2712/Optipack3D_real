@@ -12,7 +12,7 @@ class JWTAuthenticationMiddleware:
         print("cookie")
         print(token)
         protected_paths = [
-            '/dashboard_admin',
+            '/check_login',
         ]
         bypass_paths = [
             '/send_otp_to_email',
@@ -28,10 +28,9 @@ class JWTAuthenticationMiddleware:
                     payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
 
                     # Add the decoded email or other user details to the request object
-                    print(payload.get('email'))
                     request.user_email = payload.get('email')
+                    request.userType = payload.get('userType')
                     print(payload)
-                    print(f"User email set: {request.user_email}")
 
                 except jwt.ExpiredSignatureError:
                     return JsonResponse({"ERROR": "Login sessioin has expired. Login again"}, status=401)
