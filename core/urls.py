@@ -45,6 +45,7 @@ urlpatterns = [
     path('check_email', check_email, name='check_email'),
     path('check_login', check_login, name='check_login'),
     path('add_permission', add_permission, name='add_permission'),
+    path('get_permissions', get_permissions, name='get_permissions'),
 ]
 
 #for aws enable 

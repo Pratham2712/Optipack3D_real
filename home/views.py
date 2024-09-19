@@ -52,11 +52,12 @@ truck_specs = {
     # Add more specifications as needed
 }
 # SECRET_KEY = settings.SECRET_KEY 
-def generate_jwt_token(email_id,userType):
+def generate_jwt_token(email_id,userType,company):
     expiration_time = datetime.utcnow() + timedelta(hours=1)
     payload = {
         'email': email_id,
         'userType':userType,
+        "company":company,
         'exp': expiration_time  # Expiration time for the token
     }
     token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
@@ -867,7 +868,7 @@ def verify_otp(request):
         # Update the user count in the company
         company.user_count += 1
         company.save()
-        token = generate_jwt_token(email_id,user.user_type)
+        token = generate_jwt_token(email_id,user.user_type,companyname)
         print(token)
         response = JsonResponse({"SUCCESS": {
                 'email': email_id,
@@ -891,7 +892,7 @@ def verify_login(request):
     # Step 1: Get the email and otp from the request
     email_id = request.POST.get('email')
     otp_input = request.POST.get('otp')
-    
+    company = request.POST.get("company_name")
     if not email_id or not otp_input:
         return JsonResponse({"ERROR": "Email and OTP are required"}, status=400)
     
@@ -923,7 +924,7 @@ def verify_login(request):
         otp_entry.isVerified = True
         otp_entry.save()
         if user_exists:
-            token = generate_jwt_token(email_id,user_exists.user_type)
+            token = generate_jwt_token(email_id,user_exists.user_type,company)
             response = JsonResponse({"SUCCESS": {
                 'email': email_id,
                 'userType': user_exists.user_type,
@@ -958,11 +959,15 @@ def check_login(request):
 
 def add_permission(request):
     if request.method == 'POST':
-        try:
+        if not hasattr(request,"userType") and not request.userType == "Company_Admin":
+            return JsonResponse({"ERROR": "Login with admin account"}, status=400)
+        try: 
             data = json.loads(request.body)  # Load JSON data from the request body
             print(data)
+            company = ""
             for record in data:
                 company_name = record.get('company')
+                company = company_name
                 user_type_name = record.get('user_type')
                 dashboard_name = record.get('dashboard')
                 allowed = record.get('allowed')
@@ -989,8 +994,18 @@ def add_permission(request):
             permissions = DashboardPermission.objects.filter(company=company)
             print("permissions")
             print(permissions)
+            result = []
+            for perm in permissions:
+                print(perm)
+                result.append({
+                    "company": perm.company.company_name,
+                    "user_type": perm.user_type.name,
+                    "dashboard": perm.dashboard.name,
+                    "allowed": perm.allowed
+                })
+            # print(result)
 
-            return JsonResponse({"SUCCESS": "Data processed successfully"}, status=200)
+            return JsonResponse({"SUCCESS": result}, status=200)
 
         except Company.DoesNotExist:
             return JsonResponse({"ERROR": f"Company '{company_name}' does not exist"}, status=400)
@@ -1002,3 +1017,28 @@ def add_permission(request):
             return JsonResponse({"ERROR": str(e)}, status=500)
     
     return JsonResponse({"ERROR": "Invalid request method"}, status=405)
+
+def get_permissions(request):
+    if hasattr(request, 'userType') and request.userType == "Company_Admin":
+        company_name = request.company
+        try:
+            company = Company.objects.get(company_name=company_name)
+            
+            permissions = DashboardPermission.objects.filter(company=company)
+            
+            result = []
+            for perm in permissions:
+                result.append({
+                    "company": perm.company.company_name,
+                    "user_type": perm.user_type.name,  
+                    "dashboard": perm.dashboard.name, 
+                    "allowed": perm.allowed
+                })
+            
+            return JsonResponse({"SUCCESS": result}, status=200)
+
+        except Company.DoesNotExist:
+            return JsonResponse({"ERROR": "Company not found"}, status=404)
+    
+    else:
+        return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin can view this data'}, status=403)

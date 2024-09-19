@@ -83,10 +83,25 @@ class Company(models.Model):
         return self.company_name
 
 class DashboardPermission(models.Model):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)  # Link to the company
-    user_type = models.ForeignKey(UserType, on_delete=models.CASCADE)  # Link to user type
-    dashboard = models.ForeignKey(Dashboard, on_delete=models.CASCADE)  # Link to dashboard
-    allowed = models.BooleanField(default=False)  # Permission: allowed or not allowed
+    company = models.ForeignKey(
+        'Company', 
+        on_delete=models.CASCADE, 
+        to_field='company_name',  # Specify the field to match the VARCHAR(50) type
+        related_name='permissions'
+    )
+    user_type = models.ForeignKey(
+        'UserType', 
+        on_delete=models.CASCADE, 
+        to_field='name',  # Specify the field to match the VARCHAR(50) type
+        related_name='permissions'
+    )
+    dashboard = models.ForeignKey(
+        'Dashboard', 
+        on_delete=models.CASCADE, 
+        to_field='name',  # Specify the field to match the VARCHAR(50) type
+        related_name='permissions'
+    )
+    allowed = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('company', 'user_type', 'dashboard')  # Ensure unique permissions for each combo

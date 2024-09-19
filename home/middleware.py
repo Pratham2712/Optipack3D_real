@@ -13,6 +13,8 @@ class JWTAuthenticationMiddleware:
         print(token)
         protected_paths = [
             '/check_login',
+            "/add_permission",
+            "/get_permissions",
         ]
         bypass_paths = [
             '/send_otp_to_email',
@@ -30,6 +32,7 @@ class JWTAuthenticationMiddleware:
                     # Add the decoded email or other user details to the request object
                     request.user_email = payload.get('email')
                     request.userType = payload.get('userType')
+                    request.company = payload.get("company")
                     print(payload)
 
                 except jwt.ExpiredSignatureError:
@@ -43,6 +46,8 @@ class JWTAuthenticationMiddleware:
             if token:
                 payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
                 request.user_email = payload.get('email')
+                request.userType = payload.get('userType')
+                request.company = payload.get("company")
             print("Bypassing JWT authentication for:", request.path)
         # Proceed with the request if no token or valid token
         response = self.get_response(request)
