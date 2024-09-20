@@ -46,6 +46,8 @@ urlpatterns = [
     path('check_login', check_login, name='check_login'),
     path('add_permission', add_permission, name='add_permission'),
     path('get_permissions', get_permissions, name='get_permissions'),
+    path('add_loadplan', add_loadplan, name='add_loadplan'),
+    path('get_loadplan', get_loadplan, name='get_loadplan'),
 ]
 
 #for aws enable 

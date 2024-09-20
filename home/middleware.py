@@ -15,6 +15,8 @@ class JWTAuthenticationMiddleware:
             '/check_login',
             "/add_permission",
             "/get_permissions",
+            "/add_loadplan",
+            "/get_loadplan",
         ]
         bypass_paths = [
             '/send_otp_to_email',

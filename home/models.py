@@ -60,10 +60,12 @@ class Company(models.Model):
     plan = models.CharField(max_length=1, choices=plan_choices)
     access_roles = models.CharField(max_length=1, choices=access_roles_choices)
     standard_container_type = models.CharField(max_length=20, choices=container_type_choices)
-    # choice_of_container = models.cha
     standard_source = models.CharField(max_length=100, choices=standard_source_choices)
     standard_destination = models.CharField(max_length=100,choices=standard_destination_choices)
     user_count = models.PositiveIntegerField(default=0)
+    shipping_location = models.JSONField(default=list)  # List of shipping locations
+    destination_location = models.JSONField(default=list)  # List of destination locations
+    container_type = models.JSONField(default=list)
     
     def save(self, *args, **kwargs):
         if self.user_count > 100:

@@ -963,7 +963,6 @@ def add_permission(request):
             return JsonResponse({"ERROR": "Login with admin account"}, status=400)
         try: 
             data = json.loads(request.body)  # Load JSON data from the request body
-            print(data)
             company = ""
             for record in data:
                 company_name = record.get('company')
@@ -1035,6 +1034,67 @@ def get_permissions(request):
                     "allowed": perm.allowed
                 })
             
+            return JsonResponse({"SUCCESS": result}, status=200)
+
+        except Company.DoesNotExist:
+            return JsonResponse({"ERROR": "Company not found"}, status=404)
+    
+    else:
+        return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin can view this data'}, status=403)
+def add_loadplan(request):
+    if request.method == 'POST':
+        if hasattr(request, 'userType') and request.userType == "Company_Admin":
+            company_name = request.company  
+            
+            try:
+                company = Company.objects.get(company_name=company_name)
+                data = json.loads(request.body)
+
+                shipping_location = data.get("shipping_location", "")
+                destination_location = data.get("destination_location", "")
+                container_type = data.get("container_type", "")
+
+                if shipping_location:
+                    if shipping_location not in company.shipping_location:
+                        company.shipping_location.append(shipping_location)  
+                if destination_location:
+                    if destination_location not in company.destination_location:
+                        company.destination_location.append(destination_location)  
+                if container_type:
+                    if container_type not in company.container_type:
+                        company.container_type.append(container_type)  
+
+                company.save()
+
+                result = {
+                    "company": company.company_name,
+                    "shipping_location": company.shipping_location,
+                    "destination_location": company.destination_location,
+                    "container_type": company.container_type,
+                }
+
+                return JsonResponse({"SUCCESS": result}, status=200)
+
+            except Company.DoesNotExist:
+                return JsonResponse({"ERROR": "Company not found"}, status=404)
+        
+        else:
+            return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin can add this data'}, status=403)
+
+    else:
+        return JsonResponse({'ERROR': 'Invalid request method. Only POST requests are allowed.'}, status=405)
+
+def get_loadplan(request):
+    if hasattr(request, 'userType') and request.userType == "Company_Admin":
+        company_name = request.company
+        try:
+            company = Company.objects.get(company_name=company_name)
+            result = {
+                "company": company.company_name,
+                "shipping_location": company.shipping_location, 
+                "destination_location": company.destination_location,  
+                "container_type": company.container_type,  
+            }
             return JsonResponse({"SUCCESS": result}, status=200)
 
         except Company.DoesNotExist:
