@@ -25,7 +25,7 @@ from django.utils import timezone
 import os
 import jwt
 from datetime import timedelta, datetime
-from core.settings import SECRET_KEY
+from core.settings import SECRET_KEY,DEFAULT_FROM_EMAIL
 
 
 truck_specs = {
@@ -772,7 +772,7 @@ def check_email(request):
     user_exists = Users.objects.filter(email_id=email_id).exists()
     if user_exists:
         return JsonResponse({"ERROR": "User already exist try login"}, status=400)
-    return JsonResponse({"SUCCESS": "New user"}, status=400)
+    return JsonResponse({"SUCCESS": "Email is not register"}, status=400)
 
 
 def send_otp_to_email(request):
@@ -801,7 +801,7 @@ def send_otp_to_email(request):
     # Step 4: Send the OTP via email
     subject = 'Your OTP Code'
     message = f'Your OTP code is {otp}. It is valid for 15 minutes.'
-    email_from = 'masterpalace12345@gmail.com'
+    email_from = DEFAULT_FROM_EMAIL
     recipient_list = [email_id]
     
     try:
@@ -883,6 +883,17 @@ def verify_otp(request):
             secure=True,  
             samesite='None' 
         )
+        if user.user_type != "Company_Admin":
+            admin_user = Users.objects.filter(company=company, user_type="Company_Admin").first()
+            print(admin_user.email_id)
+            if admin_user:
+                send_mail(
+                    subject="New User Registered in Your Company",
+                    message=f"A new user with email {email_id} has registered with your company '{companyname}'.",
+                    from_email=DEFAULT_FROM_EMAIL,
+                    recipient_list=[admin_user.email_id],  # Send to the company admin's email
+                    fail_silently=False,
+                )
         return response
     
     except OTPRegistration.DoesNotExist:

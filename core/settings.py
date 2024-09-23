@@ -184,6 +184,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_FROM_EMAIL = "masterpalace12345@gmail.com"
 
 
 LOGIN_URL = 'login'

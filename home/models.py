@@ -4,16 +4,7 @@ import random
 from django.utils import timezone
 from datetime import timedelta
 
-# class Container(models.Model):
-#     container_name= models.CharField(max_length=50)
-#     length = models.FloatField()
-#     width = models.FloatField()
-#     height = models.FloatField()
-#     max_weight = models.FloatField()
 
-
-#     def __str__(self):
-#         return self.container_name
 
 class UserType(models.Model):
     name = models.CharField(max_length=50, unique=True, primary_key=True)  # e.g., 'Loading team', 'Load planner', etc.
@@ -197,9 +188,12 @@ class Container(models.Model):
     cubic_capacity = models.FloatField()
     tare_weight =models.FloatField()
     max_gross_weight =models.FloatField()
+    company_name = models.ForeignKey('Company', on_delete=models.CASCADE, related_name='containers')
+
 
     def __str__(self):
         return self.container_id
+
 
 class Order(models.Model):
     order_id = models.CharField(max_length=20, primary_key=True, unique=True)
@@ -213,9 +207,6 @@ class Order(models.Model):
     destination_point = models.CharField(max_length=100)
     planned_start_date = models.DateField()
     planned_delivery_date = models.DateField()
-
-
-
 
     def __str__(self):
         return self.order_id
