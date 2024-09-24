@@ -139,7 +139,8 @@ class Users(models.Model):
         ('Company_SuperAdmin', 'Company_SuperAdmin'),
         ('Company_Admin', 'Company_Admin'),
         ('Company_loader', 'Company_loader'),
-        ('Company_planner', 'Company_planner')
+        ('Company_planner', 'Company_planner'),
+        ('None','None')
     ]
     status_choices=[
         ('Exp','expired'),
@@ -153,6 +154,7 @@ class Users(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='users', default='0000')
     user_status = models.CharField(max_length=100,choices= status_choices)
     last_login = models.DateTimeField(null=True, blank=True)
+    first_login = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_authenticated =models.BooleanField(default=False)
 
@@ -169,26 +171,26 @@ class Users(models.Model):
         return f"{self.user_id} - {self.email_id}"
 
 class Container(models.Model):
-    container_id = models.CharField(max_length=20,primary_key=True)  ## Put a unique random geenarator
+    container_id = models.CharField(max_length=20,primary_key=True, unique=True)  ## Put a unique random geenarator
     container_name = models.CharField(max_length=50)
-    container_volume = models.FloatField()
+    container_volume = models.FloatField(default=0)
     container_length = models.FloatField()
     container_width = models.FloatField()
     container_height = models.FloatField()
-    payload_capacity= models.FloatField()
+    payload_capacity= models.FloatField(default=0)
     container_type_choices = [
         ('A','A'),
         ('B','B')
     ]
-    container_type = models.CharField(max_length=100,choices= container_type_choices)
-    volume_capacity= models.FloatField()
+    container_type = models.CharField(max_length=100,default="",choices= container_type_choices)
+    volume_capacity= models.FloatField(default=0)
     seperator_pallet = models.BooleanField(default=False)
-    door_opening_width = models.FloatField()
-    door_opening_length=models.FloatField()
-    cubic_capacity = models.FloatField()
-    tare_weight =models.FloatField()
-    max_gross_weight =models.FloatField()
-    company_name = models.ForeignKey('Company', on_delete=models.CASCADE, related_name='containers')
+    door_opening_width = models.FloatField(default=0)
+    door_opening_length=models.FloatField(default=0)
+    cubic_capacity = models.FloatField(default=0)
+    tare_weight =models.FloatField(default=0)
+    max_gross_weight =models.FloatField(default=0)
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, default="", related_name='containers')
 
 
     def __str__(self):

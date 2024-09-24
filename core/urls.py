@@ -39,15 +39,22 @@ urlpatterns = [
     path('additionalInformationJson', additionalInformationJson, name='additionalInformationJson'),
     path('enquire/', enquire, name='enquire'),
     path('get_csrf_token/', get_csrf_token, name='get_csrf_token'),
+    # auth route========================================================================================================
     path('send_otp_to_email', send_otp_to_email, name='send_otp_to_email'),
     path('verify_otp', verify_otp, name='verify_otp'),
     path('verify_login', verify_login, name='verify_login'),
     path('check_email', check_email, name='check_email'),
     path('check_login', check_login, name='check_login'),
+    # admin route ===================================================================================================
     path('add_permission', add_permission, name='add_permission'),
     path('get_permissions', get_permissions, name='get_permissions'),
     path('add_loadplan', add_loadplan, name='add_loadplan'),
     path('get_loadplan', get_loadplan, name='get_loadplan'),
+    path('add_container', add_container, name='add_container'),
+    path('get_container', get_container, name='get_container'),
+    path('send_email', send_email, name='send_email'),
+    path('get_allusers', get_allusers, name='get_allusers'),
+    path('get_usertype', get_usertype, name='get_usertype'),
 ]
 
 #for aws enable 

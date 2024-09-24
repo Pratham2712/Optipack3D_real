@@ -852,7 +852,7 @@ def verify_otp(request):
         if company.user_count == 0:
             user_type = "Company_Admin"
         else:
-            user_type = "Company_loader"
+            user_type = "None"
         user = Users(
             email_id=email_id,
             user_id=generate_unique_user_id(),
@@ -861,7 +861,8 @@ def verify_otp(request):
             user_type=user_type,
             user_status='Active',
             is_authenticated=True,
-            company=company  # Associate with the created or retrieved company
+            company=company,
+            first_login = timezone.now()
         )
         user.save()
 
@@ -873,7 +874,8 @@ def verify_otp(request):
         response = JsonResponse({"SUCCESS": {
                 'email': email_id,
                 'userType': user.user_type,
-                "message" : "OTP verified successfully"
+                "message" : "OTP verified successfully",
+                "company" : user.company_id
             }}, status=200)
         response.set_cookie(
             'jwt_token',  
@@ -885,7 +887,6 @@ def verify_otp(request):
         )
         if user.user_type != "Company_Admin":
             admin_user = Users.objects.filter(company=company, user_type="Company_Admin").first()
-            print(admin_user.email_id)
             if admin_user:
                 send_mail(
                     subject="New User Registered in Your Company",
@@ -935,11 +936,14 @@ def verify_login(request):
         otp_entry.isVerified = True
         otp_entry.save()
         if user_exists:
+            user_exists.last_login = timezone.now()
+            user_exists.save()
             token = generate_jwt_token(email_id,user_exists.user_type,company)
             response = JsonResponse({"SUCCESS": {
                 'email': email_id,
                 'userType': user_exists.user_type,
-                "message" : "OTP verified successfully"
+                "message" : "OTP verified successfully",
+                "company" : user_exists.company_id
             }}, status=200)
             response.set_cookie(
                 'jwt_token',  
@@ -953,7 +957,6 @@ def verify_login(request):
         else :
             return JsonResponse({"ERROR": "User not registered"}, status=400)
         
-        print(token)
     
     except OTPRegistration.DoesNotExist:
         return JsonResponse({"ERROR": "No OTP found for this email"}, status=404)
@@ -963,6 +966,7 @@ def check_login(request):
         return JsonResponse({'SUCCESS': {
                 'email': request.user_email,
                 'userType': request.userType,
+                'company' : request.company,
                 "message" : "User is login"
             }})
     else:
@@ -1110,6 +1114,151 @@ def get_loadplan(request):
 
         except Company.DoesNotExist:
             return JsonResponse({"ERROR": "Company not found"}, status=404)
+    
+    else:
+        return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin can view this data'}, status=403)
+
+def add_container(request):
+    if request.method == 'POST':
+        if hasattr(request, 'userType') and request.userType == "Company_Admin":
+            company_name = request.company  
+            
+            try:
+                company = Company.objects.get(company_name=company_name)
+                
+                data = json.loads(request.body)
+                
+                container_height = data.get('container_height')
+                container_width = data.get('container_width')
+                container_length = data.get('container_length')
+                container_name = data.get('container_name')
+                
+                if not all([container_height, container_width, container_length, container_name]):
+                    return JsonResponse({"ERROR": "Missing required fields"}, status=400)
+                
+                # Create a new container entry
+                new_container = Container(
+                    container_id=company.generate_unique_code(),
+                    container_name=container_name,
+                    container_height=container_height,
+                    container_width=container_width,
+                    container_length=container_length,
+                    company=company  # Associate the container with the company
+                )
+                
+                # Save the new container
+                new_container.save()
+
+                # Prepare the success response
+                result = company.containers.values_list('container_name', flat=True)
+                
+                return JsonResponse({"SUCCESS": {
+                'result': list(result),
+                "message" : "Container added successfully"
+            }}, status=201)
+            
+            except Company.DoesNotExist:
+                return JsonResponse({"ERROR": "Company not found"}, status=404)
+        
+        else:
+            return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin can add containers'}, status=403)
+    
+    return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
+
+def get_container(request):
+
+    if hasattr(request, 'userType') and request.userType == "Company_Admin":
+        company_name = request.company
+        try:
+            company = Company.objects.get(company_name=company_name)
+            result = company.containers.values_list('container_name', flat=True)
+            
+            return JsonResponse({"SUCCESS": list(result)}, status=200)
+
+        except Company.DoesNotExist:
+            return JsonResponse({"ERROR": "Company not found"}, status=404)
+    
+    else:
+        return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin can view this data'}, status=403)
+
+def send_email(request):
+    if request.method == 'POST':
+        if hasattr(request, 'userType') and request.userType == "Company_Admin":
+            company_name = request.company  
+            
+            try:
+                data = json.loads(request.body)
+                print(data)
+
+                send_mail(
+                    subject=f"Invited to join the '{company_name}'",
+                    message=data.get("message"),
+                    from_email=DEFAULT_FROM_EMAIL,
+                    recipient_list=[data.get("email")],  # Send to the company admin's email
+                    fail_silently=False,
+                )
+                return JsonResponse({"SUCCESS": "Email send successfully"}, status=201)
+            
+            except Exception as e:
+                return JsonResponse({"ERROR": str(e)}, status=500)
+        else:
+            return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin can add containers'}, status=403)
+    return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
+
+def get_allusers(request):
+    
+    if hasattr(request, 'userType') and request.userType == "Company_Admin":
+        company_name = request.company
+        try:
+            company = Company.objects.get(company_name=company_name)
+
+            # Filter users based on the company
+            users = Users.objects.filter(company=company)
+
+            # Prepare the result
+            user_data = []
+            for user in users:
+                user_data.append({
+                    "user_id": user.user_id,
+                    "email_id": user.email_id,
+                    "user_first_name": user.user_first_name,
+                    "user_last_name": user.user_last_name,
+                    "user_type": user.user_type,
+                    "user_status": user.user_status,
+                    "first_login": user.first_login,
+                    "last_login": user.last_login,
+                    "is_active": user.is_active,
+                    "is_authenticated": user.is_authenticated,
+                })
+
+            # Return the JSON response with the user data
+            return JsonResponse({"SUCCESS": {
+                "result": user_data,
+                "message":"User fetched successfully"
+            }}, status=200)
+
+        except Exception as e:
+                return JsonResponse({"ERROR": str(e)}, status=500)
+    
+    else:
+        return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin can view this data'}, status=403)
+
+def get_usertype(request):
+
+    if hasattr(request, 'userType') and request.userType == "Company_Admin":
+        company_name = request.company
+        try:
+            user_types = UserType.objects.values_list('name', flat=True)
+            user_type_list = list(user_types)  # Convert QuerySet to a list
+
+            return JsonResponse({"SUCCESS": {
+                "result":user_type_list,
+                "message":"User type fetch successfully"
+            }}, status=200)
+
+
+        except Exception as e:
+            return JsonResponse({"ERROR": str(e)}, status=500)
     
     else:
         return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin can view this data'}, status=403)

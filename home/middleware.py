@@ -17,6 +17,11 @@ class JWTAuthenticationMiddleware:
             "/get_permissions",
             "/add_loadplan",
             "/get_loadplan",
+            "/add_container",
+            "/get_container",
+            "/send_email",
+            "/get_allusers",
+            "/get_usertype"
         ]
         bypass_paths = [
             '/send_otp_to_email',
