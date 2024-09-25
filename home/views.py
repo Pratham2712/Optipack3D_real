@@ -53,7 +53,7 @@ truck_specs = {
 }
 # SECRET_KEY = settings.SECRET_KEY 
 def generate_jwt_token(email_id,userType,company):
-    expiration_time = datetime.utcnow() + timedelta(hours=1)
+    expiration_time = datetime.utcnow() + timedelta(hours=5)
     payload = {
         'email': email_id,
         'userType':userType,
@@ -948,7 +948,7 @@ def verify_login(request):
             response.set_cookie(
                 'jwt_token',  
                 token,        
-                max_age=3600, 
+                max_age=18000, 
                 httponly=True, 
                 secure=True,  
                 samesite='None' 
@@ -1188,8 +1188,28 @@ def send_email(request):
             
             try:
                 data = json.loads(request.body)
-                print(data)
-
+                email_id = data.get("email")
+                user_type = data.get("userType")
+                user_exists = Users.objects.filter(email_id=email_id).exists()
+                if not email_id or not user_type:
+                    return JsonResponse({"ERROR": "Email and userType are required"}, status=400)
+                if user_exists:
+                    return JsonResponse({"ERROR":"User already exist"}, status=400)
+                company = Company.objects.get(company_name=company_name)
+                user = Users(
+                    email_id=email_id,
+                    user_id=generate_unique_user_id(),
+                    user_first_name='DefaultFirstName',  # Replace with actual form data or defaults
+                    user_last_name='DefaultLastName',    # Replace with actual form data or defaults
+                    user_type=user_type,
+                    user_status='Dormant',
+                    is_authenticated=True,
+                    company=company,
+                    first_login = timezone.now()
+                )
+                user.save()
+                company.user_count += 1
+                company.save()
                 send_mail(
                     subject=f"Invited to join the '{company_name}'",
                     message=data.get("message"),
@@ -1198,7 +1218,8 @@ def send_email(request):
                     fail_silently=False,
                 )
                 return JsonResponse({"SUCCESS": "Email send successfully"}, status=201)
-            
+            except Company.DoesNotExist:
+                return JsonResponse({"ERROR": "Company not found"}, status=404)
             except Exception as e:
                 return JsonResponse({"ERROR": str(e)}, status=500)
         else:
@@ -1249,7 +1270,7 @@ def get_usertype(request):
         company_name = request.company
         try:
             user_types = UserType.objects.values_list('name', flat=True)
-            user_type_list = list(user_types)  # Convert QuerySet to a list
+            user_type_list = list(user_types)  
 
             return JsonResponse({"SUCCESS": {
                 "result":user_type_list,
@@ -1262,3 +1283,67 @@ def get_usertype(request):
     
     else:
         return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin can view this data'}, status=403)
+
+def update_usertype(request):
+
+    if hasattr(request, 'userType') and request.userType == "Company_Admin":
+        company_name = request.company
+        try:
+            data = json.loads(request.body)
+            email_id = data.get("email")
+            user_type = data.get("userType")
+
+            if not email_id or not user_type:
+                return JsonResponse({"ERROR": "Email and userType are required"}, status=400)
+
+            user = Users.objects.filter(email_id=email_id, company=company_name).first()
+
+            if not user:
+                return JsonResponse({"ERROR": "User not found in the company"}, status=404)
+
+            # Update the user type
+            user.user_type = user_type
+            user.save()
+
+            return JsonResponse({"SUCCESS": {
+                "message":"Role updated successfully"
+            }}, status=200)
+
+        except Exception as e:
+            return JsonResponse({"ERROR": str(e)}, status=500)
+
+    else:
+        return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin can update user type'}, status=403)
+
+def remove_user(request):
+    if hasattr(request, 'userType') and request.userType == "Company_Admin":
+        company_name = request.company
+        try:
+            data = json.loads(request.body)
+            email_id = data.get("email")
+
+            if not email_id:
+                return JsonResponse({"ERROR": "Email are required"}, status=400)
+            user = Users.objects.filter(email_id=email_id, company=company_name).first()
+
+            if not user:
+                return JsonResponse({"ERROR": "User not found in the company"}, status=404)
+            company = user.company
+            user.delete()
+            if company.user_count > 0:
+                company.user_count -= 1
+                company.save()
+
+            return JsonResponse({"SUCCESS": {"message" : "User deleted successfully"}}, status=200)
+        except Exception as e:
+            return JsonResponse({"ERROR": str(e)}, status=500)
+    else:
+        return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin can remove users'}, status=403)
+
+# def add_sku(request):
+#     if hasattr(request, 'userType') and request.userType == "Company_Admin":
+#         company_name = request.company
+#         try:
+#             data = json.loads(request.body)     
+#             # add sku data
+            

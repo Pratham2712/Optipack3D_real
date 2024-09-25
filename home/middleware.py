@@ -21,7 +21,9 @@ class JWTAuthenticationMiddleware:
             "/get_container",
             "/send_email",
             "/get_allusers",
-            "/get_usertype"
+            "/get_usertype",
+            "/update_usertype",
+            "/remove_user",
         ]
         bypass_paths = [
             '/send_otp_to_email',
@@ -55,7 +57,6 @@ class JWTAuthenticationMiddleware:
                 request.user_email = payload.get('email')
                 request.userType = payload.get('userType')
                 request.company = payload.get("company")
-            print("Bypassing JWT authentication for:", request.path)
         # Proceed with the request if no token or valid token
         response = self.get_response(request)
         return response

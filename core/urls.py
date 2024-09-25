@@ -55,6 +55,8 @@ urlpatterns = [
     path('send_email', send_email, name='send_email'),
     path('get_allusers', get_allusers, name='get_allusers'),
     path('get_usertype', get_usertype, name='get_usertype'),
+    path('update_usertype', update_usertype, name='update_usertype'),
+    path('remove_user', remove_user, name='remove_user'),
 ]
 
 #for aws enable 

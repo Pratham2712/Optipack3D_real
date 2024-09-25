@@ -117,10 +117,13 @@ class SKU(models.Model):
     length = models.FloatField()
     width = models.FloatField()
     height = models.FloatField()
+    numberOfCases = models.FloatField(default=0)
+    tiltAllowed = models.BooleanField(default=False)
     #  What is product hierarchy
     product_hierarchy =models.TextField()
     incompatibility = models.CharField(max_length=100)
-    max_stack_height = models.IntegerField()  #number of boxes that can be accomodated , think about the default put it as the container heights
+    max_stack_height = models.IntegerField()
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, default="", related_name='SKU')
 
 
     def __str__(self):
@@ -146,7 +149,6 @@ class Users(models.Model):
         ('Exp','expired'),
         ('Active','Active'),
         ('Dormant','Dormant')
-        # Others after discussing 
     ]
     user_type = models.CharField(max_length=20, choices=user_type_choices)
     user_first_name = models.CharField(max_length=100)
