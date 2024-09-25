@@ -97,14 +97,25 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     "default": {
-        "ENGINE": "mysql.connector.django",
+        "ENGINE": "django.db.backends.mysql",
         "NAME": "containerbuilder3d",
-        "USER": "developer",
-        "PASSWORD": "Test@1234",
+        "USER": "root",
+        "PASSWORD": "Pratham@2712",
         "HOST": "127.0.0.1",
         "PORT": "3306",
     }
 }
+
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "mysql.connector.django",
+#         "NAME": "containerbuilder3d",
+#         "USER": "developer",
+#         "PASSWORD": "Test@1234",
+#         "HOST": "127.0.0.1",
+#         "PORT": "3306",
+#     }
+# }
 
 # DATABASES = {
 #     "default": {
