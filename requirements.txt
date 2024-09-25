@@ -1,6 +1,7 @@
-Django 
+django 
 sqlparse
-mysqlclient
+mysql-connector-python
 pillow
 matplotlib
 pandas
+django-cors-headers
