@@ -1341,10 +1341,120 @@ def remove_user(request):
     else:
         return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin can remove users'}, status=403)
 
-# def add_sku(request):
-#     if hasattr(request, 'userType') and request.userType == "Company_Admin":
-#         company_name = request.company
-#         try:
-#             data = json.loads(request.body)     
-#             # add sku data
-            
+def add_sku(request):
+    if hasattr(request, 'userType') and request.userType == "Company_Admin":
+        company_name = request.company
+        try:
+            data = json.loads(request.body)     
+            sku_name = data.get("sku_name")
+            sku_description = data.get("sku_description", "")
+            sku_type = data.get("sku_type", "A")  # Defaulting to 'A' if not provided
+            gross_weight = data.get("gross_weight")
+            net_weight = data.get("net_weight", 0)  # Optional field
+            volume = data.get("volume", 0)  # Optional field
+            length = data.get("length")
+            width = data.get("width")
+            height = data.get("height")
+            number_of_cases = data.get("numberOfCases", 0)  # Optional field
+            tilt_allowed = data.get("tiltAllowed", False)
+            product_hierarchy = data.get("product_hierarchy", "")
+            incompatibility = data.get("incompatibility", "")
+            max_stack_height = data.get("max_stack_height", 0)
+
+            if not sku_name or not gross_weight or not length or not width or not height:
+                return JsonResponse({"ERROR": "Required fields are missing"}, status=400)
+
+            # Get the company object
+            company = Company.objects.filter(company_name=company_name).first()
+
+            if not company:
+                return JsonResponse({"ERROR": "Company not found"}, status=404)
+
+            # Creating the SKU object
+            sku_code = f"{company_name}_{sku_name}" 
+
+            sku = SKU(
+                sku_code=sku_code,
+                sku_name=sku_name,
+                sku_description=sku_description,
+                sku_type=sku_type,
+                gross_weight=gross_weight,
+                net_weight=net_weight,
+                volume=volume,
+                length=length,
+                width=width,
+                height=height,
+                numberOfCases=number_of_cases,
+                tiltAllowed=tilt_allowed,
+                product_hierarchy=product_hierarchy,
+                incompatibility=incompatibility,
+                max_stack_height=max_stack_height,
+                company=company
+            )
+
+            # Save SKU object to the database
+            sku.save()
+
+            return JsonResponse({"SUCCESS": {"message" : "SKU added successfull","sku_code":sku_code}}, status=201)
+
+        except ValidationError as e:
+            return JsonResponse({"ERROR": str(e)}, status=400)
+
+        except Exception as e:
+            return JsonResponse({"ERROR": str(e)}, status=500)
+
+    return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin can add SKU"}, status=403)
+
+def get_sku(request):
+    if request.method == 'POST':
+        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_Loader"]:
+            company_name = request.company
+            try:
+                company = Company.objects.filter(company_name=company_name).first()
+                data = json.loads(request.body)
+                page = int(data.get('page', 0)) 
+                page_size = int(data.get('pagesize', 3))
+
+                if not company:
+                    return JsonResponse({"ERROR": "Company not found"}, status=404)
+
+                total_sku = SKU.objects.filter(company=company).count()
+
+                skus = SKU.objects.filter(company=company).values(
+                    'sku_code', 'sku_name', 'gross_weight', 'length', 'width', 'height', 'numberOfCases', 'tiltAllowed'
+                )[page * page_size: (page + 1) * page_size]
+
+                # Check if SKUs exist
+                if not skus:
+                    return JsonResponse({"ERROR": "No SKUs found for the company"}, status=404)
+
+                # Return SKU data as JSON response
+                return JsonResponse({"SUCCESS": {"message":"SKUs fetched successfully","result":list(skus),"total":total_sku}}, status=200, safe=False)
+
+            except Exception as e:
+                return JsonResponse({"ERROR": str(e)}, status=500)
+        
+        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin and Company_Loader can view SKUs"}, status=403)
+    return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
+
+def delete_sku(request):
+    if request.method == 'POST':
+        if hasattr(request,'userType') and request.userType == "Company_Admin":
+            company_name = request.company
+            try:
+                data = json.loads(request.body)
+                sku_code = data.get("sku_code")
+                if not sku_code:
+                    return JsonResponse({"ERROR": "SKU code is required"}, status=400)
+                sku = SKU.objects.filter(sku_code=sku_code, company__company_name=company_name).first()
+                if not sku:
+                    return JsonResponse({"ERROR": "SKU not found or not associated with this company"}, status=404)
+                sku.delete()
+                return JsonResponse({"SUCCESS": {"message":"SKU deleted successfully"}}, status=200)
+            except Exception as e:
+                return JsonResponse({"ERROR": str(e)}, status=500)
+        
+        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin and Company_Loader can view SKUs"}, status=403)
+    return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
+
+

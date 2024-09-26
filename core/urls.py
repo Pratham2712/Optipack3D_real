@@ -57,6 +57,9 @@ urlpatterns = [
     path('get_usertype', get_usertype, name='get_usertype'),
     path('update_usertype', update_usertype, name='update_usertype'),
     path('remove_user', remove_user, name='remove_user'),
+    path('add_sku', add_sku, name='add_sku'),
+    path('get_sku', get_sku, name='get_sku'),
+    path('delete_sku', delete_sku, name='delete_sku'),
 ]
 
 #for aws enable 
