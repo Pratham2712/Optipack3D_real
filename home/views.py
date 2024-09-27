@@ -938,6 +938,7 @@ def verify_login(request):
         otp_entry.save()
         if user_exists:
             user_exists.last_login = timezone.now()
+            user_exists.user_status = "Active"
             user_exists.save()
             token = generate_jwt_token(email_id,user_exists.user_type,company)
             response = JsonResponse({"SUCCESS": {
@@ -1421,7 +1422,7 @@ def get_sku(request):
                 total_sku = SKU.objects.filter(company=company).count()
 
                 skus = SKU.objects.filter(company=company).values(
-                    'sku_code', 'sku_name', 'gross_weight', 'length', 'width', 'height', 'numberOfCases', 'tiltAllowed'
+                    'sku_code', 'sku_name', 'gross_weight', 'length', 'width', 'height', 'tiltAllowed'
                 )[page * page_size: (page + 1) * page_size]
 
                 # Check if SKUs exist
