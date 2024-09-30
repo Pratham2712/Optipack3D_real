@@ -103,7 +103,7 @@ class DashboardPermission(models.Model):
         return f"{self.user_type} - {self.dashboard} - {'Allowed' if self.allowed else 'Not Allowed'}"
 
 class SKU(models.Model):
-    sku_code = models.CharField(max_length=50, unique=True,primary_key=True)
+    sku_code = models.BigIntegerField(unique=True, primary_key=True)
     sku_name = models.CharField(max_length=50, unique=True)
     sku_description = models.TextField()
     type_choices=[
@@ -208,9 +208,10 @@ class Order(models.Model):
     source_location = models.CharField(max_length=100)
     shipping_point = models.CharField(max_length=100)
     destination_location = models.CharField(max_length=100)
-    destination_point = models.CharField(max_length=100)
+    destination_point = models.CharField(max_length=100)    
     planned_start_date = models.DateField()
-    planned_delivery_date = models.DateField()
+    planned_delivery_date = models.DateField(null=True,blank=True)
+    order_number = models.IntegerField(default=0)
 
     def __str__(self):
         return self.order_id

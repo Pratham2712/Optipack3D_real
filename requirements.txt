@@ -5,3 +5,4 @@ pillow
 matplotlib
 pandas
 django-cors-headers
+pyjwt

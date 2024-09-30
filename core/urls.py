@@ -60,6 +60,9 @@ urlpatterns = [
     path('add_sku', add_sku, name='add_sku'),
     path('get_sku', get_sku, name='get_sku'),
     path('delete_sku', delete_sku, name='delete_sku'),
+    # admin and planner route =============================================================================================
+    path('add_order', add_order, name='add_order'),
+
 ]
 
 #for aws enable 

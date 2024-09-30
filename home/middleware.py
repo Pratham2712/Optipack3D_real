@@ -27,6 +27,7 @@ class JWTAuthenticationMiddleware:
             "/add_sku",
             "/get_sku",
             "/delete_sku",
+            "/add_order",
         ]
         bypass_paths = [
             '/send_otp_to_email',

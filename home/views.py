@@ -1102,7 +1102,7 @@ def add_loadplan(request):
         return JsonResponse({'ERROR': 'Invalid request method. Only POST requests are allowed.'}, status=405)
 
 def get_loadplan(request):
-    if hasattr(request, 'userType') and request.userType == "Company_Admin":
+    if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_loader"]:
         company_name = request.company
         try:
             company = Company.objects.get(company_name=company_name)
@@ -1118,7 +1118,7 @@ def get_loadplan(request):
             return JsonResponse({"ERROR": "Company not found"}, status=404)
     
     else:
-        return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin can view this data'}, status=403)
+        return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin and Company loader can view this data'}, status=403)
 
 def add_container(request):
     if request.method == 'POST':
@@ -1348,6 +1348,7 @@ def add_sku(request):
         try:
             data = json.loads(request.body)     
             sku_name = data.get("sku_name")
+            sku_code = data.get("sku_code")
             sku_description = data.get("sku_description", "")
             sku_type = data.get("sku_type", "A")  # Defaulting to 'A' if not provided
             gross_weight = data.get("gross_weight")
@@ -1372,7 +1373,7 @@ def add_sku(request):
                 return JsonResponse({"ERROR": "Company not found"}, status=404)
 
             # Creating the SKU object
-            sku_code = f"{company_name}_{sku_name}" 
+            # sku_code = f"{company_name}_{sku_name}" 
 
             sku = SKU(
                 sku_code=sku_code,
@@ -1408,7 +1409,7 @@ def add_sku(request):
 
 def get_sku(request):
     if request.method == 'POST':
-        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_Loader"]:
+        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_loader"]:
             company_name = request.company
             try:
                 company = Company.objects.filter(company_name=company_name).first()
@@ -1457,5 +1458,57 @@ def delete_sku(request):
         
         return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin and Company_Loader can view SKUs"}, status=403)
     return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
+def generate_number():
+    """Generate a random order ID"""
+    return str(random.randint(1000000000, 9999999999))
+def add_order(request):
+    if request.method == 'POST':
+        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_loader"]:
+            company_name = request.company
+            try:
+                data = json.loads(request.body)
+                destination_location = data.get("destination_location")
+                source_location = data.get("source_location")
+                planned_start_date = data.get("planned_start_date")
+                order_number = data.get("order_number")
+
+                if not (destination_location and source_location and planned_start_date and order_number):
+                    return JsonResponse({"ERROR": "Missing required fields"}, status=400)
+                
+                # Find the company
+                company = Company.objects.filter(company_name=company_name).first()
+
+                if not company:
+                    return JsonResponse({"ERROR": "Company not found"}, status=404)
+
+                order_id = generate_number()
+                order = Order.objects.create(
+                    order_id=order_id,
+                    company=company,
+                    destination_location=destination_location,
+                    source_location=source_location,
+                    planned_start_date=planned_start_date,
+                    order_number=order_number
+                )
+
+                # Save the order
+                order.save()
+
+                order_data = {
+                    "source_location": order.source_location,
+                    "destination_location": order.destination_location,
+                    "planned_start_date": order.planned_start_date,
+                    "order_number": order.order_number,
+                }
+
+                return JsonResponse({"SUCCESS": {"message":"Order created successfully","result":order_data}}, status=201)
+            
+            except Exception as e:
+                return JsonResponse({"ERROR": str(e)}, status=500)
+        
+        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_loader can add orders"}, status=403)
+    
+    return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
+
 
 
