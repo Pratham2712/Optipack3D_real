@@ -889,7 +889,7 @@ def verify_otp(request):
             token,        
             max_age=3600, 
             httponly=True, 
-            secure=True,  
+            secure=False,  
             samesite='None' 
         )
         if user.user_type != "Company_Admin":
@@ -957,7 +957,7 @@ def verify_login(request):
                 token,        
                 max_age=18000, 
                 httponly=True, 
-                secure=True,  
+                secure=False,  
                 samesite='None' 
             )
             return response
