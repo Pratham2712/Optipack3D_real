@@ -888,9 +888,9 @@ def verify_otp(request):
             'jwt_token',  
             token,        
             max_age=18000, 
-            httponly=True, 
+            # httponly=True, 
             secure=False,  
-            # samesite='None'  
+            samesite='None'  
         )
         if user.user_type != "Company_Admin":
             admin_user = Users.objects.filter(company=company, user_type="Company_Admin").first()
@@ -956,9 +956,9 @@ def verify_login(request):
                 'jwt_token',  
                 token,        
                 max_age=18000, 
-                httponly=True, 
+                # httponly=True, 
                 secure=False,  
-                # samesite='None' 
+                samesite='None' 
             )
             return response
         else :
