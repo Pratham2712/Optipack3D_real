@@ -884,7 +884,7 @@ def verify_otp(request):
             max_age=18000, 
             httponly=True, 
             secure=False,  
-            samesite='Lax' 
+            samesite='None'  
         )
         if user.user_type != "Company_Admin":
             admin_user = Users.objects.filter(company=company, user_type="Company_Admin").first()
@@ -952,7 +952,7 @@ def verify_login(request):
                 max_age=18000, 
                 httponly=True, 
                 secure=False,  
-                samesite='Lax' 
+                samesite='None' 
             )
             return response
         else :
