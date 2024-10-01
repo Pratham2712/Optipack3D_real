@@ -1510,5 +1510,42 @@ def add_order(request):
     
     return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
 
+def get_skuByCode(request):
+    if request.method == 'POST':
+        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_loader"]:
+            company_name = request.company
+            try:
+                data = json.loads(request.body)
+                sku_code = data.get("sku_code")
+                if not sku_code:
+                    return JsonResponse({"ERROR": "SKU code is required"}, status=400)
+
+                    company = Company.objects.filter(company_name=company_name).first()
+                    if not company:
+                        return JsonResponse({"ERROR": "Company not found"}, status=404)
+                    sku = SKU.objects.filter(sku_code=sku_code, company=company).first()
+                    print(sku)
+
+                    if not sku:
+                        return JsonResponse({"ERROR": "SKU not found for the given company and code"}, status=404)
+                    sku_data = {
+                        "sku_code": sku.sku_code,
+                        "sku_name": sku.sku_name,
+                        "gross_weight": sku.gross_weight,
+                        "volume": sku.volume,
+                        "length": sku.length,
+                        "width": sku.width,
+                        "height": sku.height,
+                    }
+
+                return JsonResponse({"SUCCESS": {"message": "SKU fetched successfully"}}, status=200)
+
+            except Exception as e:
+                return JsonResponse({"ERROR": str(e)}, status=500)
+        
+        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_loader can view SKUs"}, status=403)
+
+    return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
+
 
 
