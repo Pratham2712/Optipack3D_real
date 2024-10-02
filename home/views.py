@@ -1520,25 +1520,26 @@ def get_skuByCode(request):
                 if not sku_code:
                     return JsonResponse({"ERROR": "SKU code is required"}, status=400)
 
-                    company = Company.objects.filter(company_name=company_name).first()
-                    if not company:
-                        return JsonResponse({"ERROR": "Company not found"}, status=404)
-                    sku = SKU.objects.filter(sku_code=sku_code, company=company).first()
-                    print(sku)
+                company = Company.objects.filter(company_name=company_name).first()
+                if not company:
+                    return JsonResponse({"ERROR": "Company not found"}, status=404)
+                sku = SKU.objects.filter(sku_code=sku_code, company=company).first()
+                print(sku)
+                print(sku_code)
 
-                    if not sku:
-                        return JsonResponse({"ERROR": "SKU not found for the given company and code"}, status=404)
-                    sku_data = {
-                        "sku_code": sku.sku_code,
-                        "sku_name": sku.sku_name,
-                        "gross_weight": sku.gross_weight,
-                        "volume": sku.volume,
-                        "length": sku.length,
-                        "width": sku.width,
-                        "height": sku.height,
-                    }
+                if not sku:
+                    return JsonResponse({"ERROR": "SKU not found for the given company and code"}, status=404)
+                sku_data = {
+                    "sku_code": sku.sku_code,
+                    "sku_name": sku.sku_name,
+                    "gross_weight": sku.gross_weight,
+                    "volume": sku.volume,
+                    "length": sku.length,
+                    "width": sku.width,
+                    "height": sku.height,
+                }
 
-                return JsonResponse({"SUCCESS": {"message": "SKU fetched successfully"}}, status=200)
+                return JsonResponse({"SUCCESS": {"message": "SKU fetched successfully","result":sku_data}}, status=200)
 
             except Exception as e:
                 return JsonResponse({"ERROR": str(e)}, status=500)

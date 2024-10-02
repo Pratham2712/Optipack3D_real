@@ -127,8 +127,7 @@ class SKU(models.Model):
 
 
     def __str__(self):
-        return self.sku_code
-
+        return str(self.sku_code)
 
 class Users(models.Model):
     user_id = models.CharField(max_length=10, primary_key=True, default='000000')
