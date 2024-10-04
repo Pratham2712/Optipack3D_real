@@ -61,8 +61,10 @@ urlpatterns = [
     path('get_sku', get_sku, name='get_sku'),
     path('delete_sku', delete_sku, name='delete_sku'),
     # admin and planner route =============================================================================================
-    path('add_order', add_order, name='add_order'),
+    path('add_or_edit_order', add_or_edit_order, name='add_or_edit_order'),
     path('get_skuByCode', get_skuByCode, name='get_skuByCode'),
+    path('get_containerByName', get_containerByName, name='get_containerByName'),
+    path('get_orderByNumber', get_orderByNumber, name='get_orderByNumber'),
 
 ]
 

@@ -1461,7 +1461,9 @@ def delete_sku(request):
 def generate_number():
     """Generate a random order ID"""
     return str(random.randint(1000000000, 9999999999))
-def add_order(request):
+
+
+def add_or_edit_order(request):
     if request.method == 'POST':
         if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_loader"]:
             company_name = request.company
@@ -1471,6 +1473,7 @@ def add_order(request):
                 source_location = data.get("source_location")
                 planned_start_date = data.get("planned_start_date")
                 order_number = data.get("order_number")
+                order_id = data.get("order_id")
 
                 if not (destination_location and source_location and planned_start_date and order_number):
                     return JsonResponse({"ERROR": "Missing required fields"}, status=400)
@@ -1481,34 +1484,51 @@ def add_order(request):
                 if not company:
                     return JsonResponse({"ERROR": "Company not found"}, status=404)
 
-                order_id = generate_number()
-                order = Order.objects.create(
-                    order_id=order_id,
-                    company=company,
-                    destination_location=destination_location,
-                    source_location=source_location,
-                    planned_start_date=planned_start_date,
-                    order_number=order_number
-                )
+                order = Order.objects.filter(order_number=order_number, company=company).first()
+                if order:
+                    # if not order:
+                    #     return JsonResponse({"ERROR": "Order not found"}, status=404)
 
-                # Save the order
-                order.save()
+                    # Update the existing order
+                    order.destination_location = destination_location
+                    order.source_location = source_location
+                    order.planned_start_date = planned_start_date
+                    order.order_number = order_number
+                    order.save()
+
+                    message = "Order updated successfully"
+                else:
+                    # Generate a new order ID if creating a new order
+                    order_id = generate_number()
+
+                    # Create a new order
+                    order = Order.objects.create(
+                        order_id=order_id,
+                        company=company,
+                        destination_location=destination_location,
+                        source_location=source_location,
+                        planned_start_date=planned_start_date,
+                        order_number=order_number
+                    )
+                    message = "Order created successfully"
 
                 order_data = {
+                    "order_id": order.order_id,
                     "source_location": order.source_location,
                     "destination_location": order.destination_location,
                     "planned_start_date": order.planned_start_date,
                     "order_number": order.order_number,
                 }
 
-                return JsonResponse({"SUCCESS": {"message":"Order created successfully","result":order_data}}, status=201)
-            
+                return JsonResponse({"SUCCESS": {"message": message, "result": order_data}}, status=201)
+
             except Exception as e:
                 return JsonResponse({"ERROR": str(e)}, status=500)
         
-        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_loader can add orders"}, status=403)
+        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_loader can add or edit orders"}, status=403)
     
     return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
+
 
 def get_skuByCode(request):
     if request.method == 'POST':
@@ -1524,8 +1544,6 @@ def get_skuByCode(request):
                 if not company:
                     return JsonResponse({"ERROR": "Company not found"}, status=404)
                 sku = SKU.objects.filter(sku_code=sku_code, company=company).first()
-                print(sku)
-                print(sku_code)
 
                 if not sku:
                     return JsonResponse({"ERROR": "SKU not found for the given company and code"}, status=404)
@@ -1547,6 +1565,85 @@ def get_skuByCode(request):
         return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_loader can view SKUs"}, status=403)
 
     return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
+
+def get_containerByName(request):
+    if request.method == 'POST':
+        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_loader"]:
+            company_name = request.company
+            try:
+                data = json.loads(request.body)
+                container_name = data.get("container_name")
+
+                if not container_name:
+                    return JsonResponse({"ERROR": "Container name is required"}, status=400)
+
+                company = Company.objects.filter(company_name=company_name).first()
+
+                if not company:
+                    return JsonResponse({"ERROR": "Company not found"}, status=404)
+
+                container = Container.objects.filter(container_name=container_name, company=company).first()
+
+                if not container:
+                    return JsonResponse({"ERROR": "Container not found for the given company and name"}, status=404)
+                container_data = {
+                    "container_id": container.container_id,
+                    "container_name": container.container_name,
+                    "length": container.container_length,
+                    "width": container.container_width,
+                    "height": container.container_height,
+                }
+
+                return JsonResponse({"SUCCESS": {"message": "Container fetched successfully", "result": container_data}}, status=200)
+
+            except Exception as e:
+                return JsonResponse({"ERROR": str(e)}, status=500)
+        
+        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_loader can view containers"}, status=403)
+
+    return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
+
+def get_orderByNumber(request):
+    if request.method == 'POST':
+        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_loader"]:
+            company_name = request.company
+            try:
+                data = json.loads(request.body)
+                order_number = data.get("order_number")
+
+                if not order_number:
+                    return JsonResponse({"ERROR": "Order number is required"}, status=400)
+
+                company = Company.objects.filter(company_name=company_name).first()
+
+                if not company:
+                    return JsonResponse({"ERROR": "Company not found"}, status=404)
+
+                order = Order.objects.filter(order_number=order_number, company=company).first()
+
+                if not order:
+                    return JsonResponse({"ERROR": "Order not found for the given company and number"}, status=404)
+
+                order_data = {
+                    "order_number": order.order_number,
+                    "source_location": order.source_location,
+                    "destination_location": order.destination_location,
+                    "planned_start_date": order.planned_start_date,
+                }
+
+                return JsonResponse({"SUCCESS": {"message": "Order fetched successfully", "result": order_data}}, status=200)
+
+            except Exception as e:
+                return JsonResponse({"ERROR": str(e)}, status=500)
+
+        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_loader can view orders"}, status=403)
+
+    return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
+
+                
+
+
+
 
 
 
