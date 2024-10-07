@@ -24,11 +24,21 @@ class JWTAuthenticationMiddleware:
             "/get_usertype",
             "/update_usertype",
             "/remove_user",
+            "/add_sku",
+            "/get_sku",
+            "/delete_sku",
+            "/get_skuByCode",
+            "/add_or_edit_order",
+            "/get_containerByName",
+            "/get_orderByNumber",
+            "/attach_skus_to_order",
+            "/get_skus_by_order_numbers",
         ]
         bypass_paths = [
             '/send_otp_to_email',
             '/verify_otp',
             '/verify_login',
+            "/freeOutputJson2",
         ]
         if any(request.path.startswith(path) for path in protected_paths):
             token = request.COOKIES.get('jwt_token')  # Extract the JWT from the cookie
