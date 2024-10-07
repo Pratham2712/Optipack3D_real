@@ -95,6 +95,7 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 # for local machine 
 
+
 DATABASES = {
     "default": {
         "ENGINE": "mysql.connector.django",

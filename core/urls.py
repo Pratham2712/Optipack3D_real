@@ -26,6 +26,7 @@ urlpatterns = [
     path('', home, name="home"),
     path('freeOutput', freeOutput, name='freeOutput'),
     path('freeOutputJson', freeOutputJson, name='freeOutputJson'),
+    path('freeOutputJson2', freeOutputJson2, name='freeOutputJson2'),
     path('freeTrial/', freeTrial, name='freeTrial'),
     path('join/', joinCreateOrganisation, name='joinCreateOrganisation'),  # Updated name for join/create organisation
     path('login/', login_view, name='login'),  # Use distinct view function for login
@@ -57,6 +58,17 @@ urlpatterns = [
     path('get_usertype', get_usertype, name='get_usertype'),
     path('update_usertype', update_usertype, name='update_usertype'),
     path('remove_user', remove_user, name='remove_user'),
+    path('add_sku', add_sku, name='add_sku'),
+    path('get_sku', get_sku, name='get_sku'),
+    path('delete_sku', delete_sku, name='delete_sku'),
+    # admin and planner route =============================================================================================
+    path('add_or_edit_order', add_or_edit_order, name='add_or_edit_order'),
+    path('get_skuByCode', get_skuByCode, name='get_skuByCode'),
+    path('get_containerByName', get_containerByName, name='get_containerByName'),
+    path('get_orderByNumber', get_orderByNumber, name='get_orderByNumber'),
+    path('attach_skus_to_order', attach_skus_to_order, name='attach_skus_to_order'),
+    path('get_skus_by_order_numbers', get_skus_by_order_numbers, name='get_skus_by_order_numbers'),
+
 ]
 
 #for aws enable 
