@@ -218,7 +218,8 @@ class Order(models.Model):
 class OrderSKU(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     sku = models.ForeignKey(SKU, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=0)
+    quantity = models.PositiveIntegerField(default=1)
+    added_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f"{self.order.order_id} - {self.sku.sku_code}: {self.quantity}"
