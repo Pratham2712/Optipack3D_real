@@ -883,7 +883,7 @@ def verify_otp(request):
             token,        
             max_age=18000, 
             # httponly=True, 
-            secure=False,  
+            secure=True,  
             samesite='None'  
         )
         if user.user_type != "Company_Admin":
@@ -951,7 +951,7 @@ def verify_login(request):
                 token,        
                 max_age=18000, 
                 # httponly=True, 
-                secure=False,  
+                secure=True,  
                 samesite='None' 
             )
             return response
