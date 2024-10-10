@@ -33,6 +33,7 @@ class JWTAuthenticationMiddleware:
             "/get_orderByNumber",
             "/attach_skus_to_order",
             "/get_skus_by_order_numbers",
+            "/get_skuCodeAndName",
         ]
         bypass_paths = [
             '/send_otp_to_email',
