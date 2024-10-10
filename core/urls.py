@@ -68,6 +68,7 @@ urlpatterns = [
     path('get_orderByNumber', get_orderByNumber, name='get_orderByNumber'),
     path('attach_skus_to_order', attach_skus_to_order, name='attach_skus_to_order'),
     path('get_skus_by_order_numbers', get_skus_by_order_numbers, name='get_skus_by_order_numbers'),
+    path('get_skuCodeAndName', get_skuCodeAndName, name='get_skuCodeAndName'),
 
 ]
 

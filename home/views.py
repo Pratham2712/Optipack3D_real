@@ -1403,7 +1403,7 @@ def add_sku(request):
             return JsonResponse({"ERROR": str(e)}, status=400)
 
         except Exception as e:
-            return JsonResponse({"ERROR": str(e)}, status=500)
+            return JsonResponse({"ERROR": str(e)}, status=400)
 
     return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin can add SKU"}, status=403)
 
@@ -1485,7 +1485,9 @@ def add_or_edit_order(request):
                     return JsonResponse({"ERROR": "Company not found"}, status=404)
 
                 order = Order.objects.filter(order_number=order_number, company=company).first()
-                if order:
+                if order and not order_id:
+                    return JsonResponse({"ERROR": "Order already exist"}, status=404)
+                if order and order_id:
                     # if not order:
                     #     return JsonResponse({"ERROR": "Order not found"}, status=404)
 
@@ -1536,26 +1538,29 @@ def get_skuByCode(request):
             company_name = request.company
             try:
                 data = json.loads(request.body)
-                sku_code = data.get("sku_code")
-                if not sku_code:
-                    return JsonResponse({"ERROR": "SKU code is required"}, status=400)
+                sku_codes = data.get("sku_code")
+                if not sku_codes or not isinstance(sku_codes, list):
+                    return JsonResponse({"ERROR": "A valid list of SKU codes is required"}, status=400)
 
                 company = Company.objects.filter(company_name=company_name).first()
                 if not company:
                     return JsonResponse({"ERROR": "Company not found"}, status=404)
-                sku = SKU.objects.filter(sku_code=sku_code, company=company).first()
+                skus = SKU.objects.filter(sku_code__in=sku_codes, company=company)
 
-                if not sku:
-                    return JsonResponse({"ERROR": "SKU not found for the given company and code"}, status=404)
-                sku_data = {
-                    "sku_code": sku.sku_code,
-                    "sku_name": sku.sku_name,
-                    "gross_weight": sku.gross_weight,
-                    "volume": sku.volume,
-                    "length": sku.length,
-                    "width": sku.width,
-                    "height": sku.height,
-                }
+                if not skus.exists():
+                    return JsonResponse({"ERROR": "No SKUs found for the given company and codes"}, status=404)
+                sku_data = [
+                    {
+                        "sku_code": sku.sku_code,
+                        "sku_name": sku.sku_name,
+                        "gross_weight": sku.gross_weight,
+                        "volume": sku.volume,
+                        "length": sku.length,
+                        "width": sku.width,
+                        "height": sku.height,
+                    }
+                    for sku in skus
+                ]
 
                 return JsonResponse({"SUCCESS": {"message": "SKU fetched successfully","result":sku_data}}, status=200)
 
@@ -1727,6 +1732,33 @@ def get_skus_by_order_numbers(request):
                     order_skus_data[order.order_number] = sku_list
 
                 return JsonResponse({"SUCCESS": {"message": "SKUs fetched successfully", "result": order_skus_data}}, status=200)
+
+            except Exception as e:
+                return JsonResponse({"ERROR": str(e)}, status=500)
+
+        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_loader can view SKUs"}, status=403)
+
+    return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
+
+def get_skuCodeAndName(request):
+    if request.method == 'POST':
+        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_loader"]:
+            company_name = request.company
+            try:
+                company = Company.objects.filter(company_name=company_name).first()
+
+                if not company:
+                    return JsonResponse({"ERROR": "Company not found"}, status=404)
+
+                skus = SKU.objects.filter(company=company)
+
+                if not skus.exists():
+                    return JsonResponse({"ERROR": "No SKUs found for this company"}, status=404)
+
+                # Create a list of dictionaries containing sku_code and sku_name
+                sku_data = [{"sku_code": sku.sku_code, "sku_name": sku.sku_name} for sku in skus]
+
+                return JsonResponse({"SUCCESS": {"message": "SKUs fetched successfully", "result": sku_data}}, status=200)
 
             except Exception as e:
                 return JsonResponse({"ERROR": str(e)}, status=500)
