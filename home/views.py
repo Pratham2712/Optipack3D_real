@@ -1485,6 +1485,8 @@ def add_or_edit_order(request):
                     return JsonResponse({"ERROR": "Company not found"}, status=404)
 
                 order = Order.objects.filter(order_number=order_number, company=company).first()
+                if order and not order_id:
+                    return JsonResponse({"ERROR": "Order already exist"}, status=404)
                 if order and order_id:
                     # if not order:
                     #     return JsonResponse({"ERROR": "Order not found"}, status=404)
