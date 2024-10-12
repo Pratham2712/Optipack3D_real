@@ -1067,16 +1067,18 @@ def add_loadplan(request):
                 company = Company.objects.get(company_name=company_name)
                 data = json.loads(request.body)
 
-                shipping_location = data.get("shipping_location", "")
-                destination_location = data.get("destination_location", "")
+                shipping_location = data.get("shipping_location", [])
+                destination_location = data.get("destination_location", [])
                 container_type = data.get("container_type", "")
 
-                if shipping_location:
-                    if shipping_location not in company.shipping_location:
-                        company.shipping_location.append(shipping_location)  
-                if destination_location:
-                    if destination_location not in company.destination_location:
-                        company.destination_location.append(destination_location)  
+                if shipping_location and isinstance(shipping_location, list):
+                    for location in shipping_location:
+                        if location not in company.shipping_location:
+                            company.shipping_location.append(location)
+                if destination_location and isinstance(destination_location, list):
+                    for location in destination_location:
+                        if location not in company.destination_location:
+                            company.destination_location.append(location) 
                 if container_type:
                     if container_type not in company.container_type:
                         company.container_type.append(container_type)  
