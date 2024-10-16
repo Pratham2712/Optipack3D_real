@@ -1110,7 +1110,7 @@ def add_loadplan(request):
         return JsonResponse({'ERROR': 'Invalid request method. Only POST requests are allowed.'}, status=405)
 
 def get_loadplan(request):
-    if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_loader"]:
+    if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_planner"]:
         company_name = request.company
         try:
             company = Company.objects.get(company_name=company_name)
@@ -1126,7 +1126,7 @@ def get_loadplan(request):
             return JsonResponse({"ERROR": "Company not found"}, status=404)
     
     else:
-        return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin and Company loader can view this data'}, status=403)
+        return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin and Company planner can view this data'}, status=403)
 
 def add_container(request):
     if request.method == 'POST':
@@ -1417,7 +1417,7 @@ def add_sku(request):
 
 def get_sku(request):
     if request.method == 'POST':
-        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_loader"]:
+        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_planner"]:
             company_name = request.company
             try:
                 company = Company.objects.filter(company_name=company_name).first()
@@ -1444,7 +1444,7 @@ def get_sku(request):
             except Exception as e:
                 return JsonResponse({"ERROR": str(e)}, status=500)
         
-        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin and Company_Loader can view SKUs"}, status=403)
+        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin and Company_planner can view SKUs"}, status=403)
     return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
 
 def delete_sku(request):
@@ -1464,7 +1464,7 @@ def delete_sku(request):
             except Exception as e:
                 return JsonResponse({"ERROR": str(e)}, status=500)
         
-        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin and Company_Loader can view SKUs"}, status=403)
+        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin and Company_planner can view SKUs"}, status=403)
     return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
 def generate_number():
     """Generate a random order ID"""
@@ -1473,7 +1473,7 @@ def generate_number():
 
 def add_or_edit_order(request):
     if request.method == 'POST':
-        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_loader"]:
+        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_planner"]:
             company_name = request.company
             try:
                 data = json.loads(request.body)
@@ -1535,14 +1535,14 @@ def add_or_edit_order(request):
             except Exception as e:
                 return JsonResponse({"ERROR": str(e)}, status=500)
         
-        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_loader can add or edit orders"}, status=403)
+        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_planner can add or edit orders"}, status=403)
     
     return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
 
 
 def get_skuByCode(request):
     if request.method == 'POST':
-        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_loader"]:
+        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_planner"]:
             company_name = request.company
             try:
                 data = json.loads(request.body)
@@ -1575,13 +1575,13 @@ def get_skuByCode(request):
             except Exception as e:
                 return JsonResponse({"ERROR": str(e)}, status=500)
         
-        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_loader can view SKUs"}, status=403)
+        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_planner can view SKUs"}, status=403)
 
     return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
 
 def get_containerByName(request):
     if request.method == 'POST':
-        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_loader"]:
+        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_planner"]:
             company_name = request.company
             try:
                 data = json.loads(request.body)
@@ -1612,13 +1612,13 @@ def get_containerByName(request):
             except Exception as e:
                 return JsonResponse({"ERROR": str(e)}, status=500)
         
-        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_loader can view containers"}, status=403)
+        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_planner can view containers"}, status=403)
 
     return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
 
 def get_orderByNumber(request):
     if request.method == 'POST':
-        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_loader"]:
+        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_planner"]:
             company_name = request.company
             try:
                 data = json.loads(request.body)
@@ -1649,13 +1649,13 @@ def get_orderByNumber(request):
             except Exception as e:
                 return JsonResponse({"ERROR": str(e)}, status=500)
 
-        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_loader can view orders"}, status=403)
+        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_planner can view orders"}, status=403)
 
     return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
 
 def attach_skus_to_order(request):
     if request.method == 'POST':
-        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_loader"]:
+        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_planner"]:
             try:
                 data = json.loads(request.body)
                 order_number = data.get("order_number")
@@ -1692,13 +1692,13 @@ def attach_skus_to_order(request):
             except Exception as e:
                 return JsonResponse({"ERROR": str(e)}, status=500)
 
-        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_loader can attach SKUs"}, status=403)
+        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_planner can attach SKUs"}, status=403)
 
     return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
 
 def get_skus_by_order_numbers(request):
     if request.method == 'POST':
-        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_loader"]:
+        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_planner"]:
             try:
                 data = json.loads(request.body)
                 order_numbers = data.get("order_numbers")  
@@ -1744,13 +1744,13 @@ def get_skus_by_order_numbers(request):
             except Exception as e:
                 return JsonResponse({"ERROR": str(e)}, status=500)
 
-        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_loader can view SKUs"}, status=403)
+        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_planner can view SKUs"}, status=403)
 
     return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
 
 def get_skuCodeAndName(request):
     if request.method == 'POST':
-        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_loader"]:
+        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_planner"]:
             company_name = request.company
             try:
                 company = Company.objects.filter(company_name=company_name).first()
@@ -1771,7 +1771,7 @@ def get_skuCodeAndName(request):
             except Exception as e:
                 return JsonResponse({"ERROR": str(e)}, status=500)
 
-        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_loader can view SKUs"}, status=403)
+        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_planner can view SKUs"}, status=403)
 
     return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
 
