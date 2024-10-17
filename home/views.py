@@ -511,11 +511,8 @@ def freeOutputJson(request):
     if request.method == 'POST':
         num_types = request.POST.get('numTypes')
         total_containers = request.POST.get('totalContainers')
-        num_containers = int(request.POST.get('numContainers'))
-        # print(num_types)
-
-        # print("num_c",num_containers)
-        print(request.POST)
+        # num_containers = int(request.POST.get('numContainers'))
+        company_name = request.company
 
         # Collect box details
         box_details = []
@@ -593,10 +590,10 @@ def freeOutputJson(request):
                     'max_weight': custom_max_weight
                 }
             container_count = len(total_containers)
-            container_data[container_type] = num_containers
+            container_data[container_type] = int(request.POST.get(f'numContainers{i}'))
 
         # print(truck_specs)
-        # print(container_data)
+        print(container_data)
         # container_data = {}
 
         # for i in range(1, total_containers + 1):
@@ -638,7 +635,21 @@ def freeOutputJson(request):
 
 
         for keys, values in container_data.items():
-            selected_truck_spec = truck_specs.get(keys, {})
+            company = ""
+            container = ""
+            if company_name:
+                company = Company.objects.filter(company_name=company_name).first()  # Assuming request.company gives the company name
+                container = Container.objects.filter(container_name=keys, company=company).first()
+            if company and container:
+                selected_truck_spec = {
+                    'length_container': container.container_length if container else None,
+                    'width_container': container.container_width if container else None,
+                    'height_container': container.container_height if container else None,
+                    'max_weight': container.max_gross_weight if container else None
+                }
+            else:
+                selected_truck_spec = truck_specs.get(keys, {})
+
             if outer_index == 0:
                 df, container_toFit, strip_list = DataProcess(df, selected_truck_spec, 1, 1, data)
                 for i in range(len(df)):
@@ -720,7 +731,7 @@ def freeOutputJson(request):
         df_ht.index+=1
         # print(df_ht)
         df_ht = df_ht.to_html(classes='data')
-        container_indices = range(1,num_containers+1)
+        container_indices = range(1,int(request.POST.get("sumContainers"))+1)
         # print(threed_boxes)
         # print(container_inf)
     threed_data = []
@@ -755,11 +766,11 @@ def freeOutputJson(request):
             'sku_info':[
             [int(sku[0]), float(sku[1]), float(sku[2]), float(sku[3]), float(sku[4])] 
             for sku in sku_info
-        ],
+            ],
             'box_info':[
             [float(info) for info in box] 
             for box in box_info
-        ],
+            ],
             'df':df_ht
         }
         # print(num_placed)
@@ -1774,11 +1785,8 @@ def freeOutputJson2(request):
         num_types = request.POST.get('numTypes')
         total_containers = request.POST.get('totalContainers')
         # num_containers = int(request.POST.get('numContainers'))
-        # company_name = request.company
-        # print(num_types)
+        company_name = request.company
 
-        # print("num_c",num_containers)
-        print(request.POST)
 
         # Collect box details
         box_details = []
@@ -1871,16 +1879,16 @@ def freeOutputJson2(request):
 
 
         for keys, values in container_data.items():
-            # company = Company.objects.filter(company_name=company_name).first()  # Assuming request.company gives the company name
-            # container = Container.objects.filter(container_name=keys, company=company).first()
-            # selected_truck_spec = {
-            #     'length_container': container.container_length if container else None,
-            #     'width_container': container.container_width if container else None,
-            #     'height_container': container.container_height if container else None,
-            #     'max_weight': container.max_gross_weight if container else None
-            # }
+            company = Company.objects.filter(company_name=company_name).first()  # Assuming request.company gives the company name
+            container = Container.objects.filter(container_name=keys, company=company).first()
+            selected_truck_spec = {
+                'length_container': container.container_length if container else None,
+                'width_container': container.container_width if container else None,
+                'height_container': container.container_height if container else None,
+                'max_weight': container.max_gross_weight if container else None
+            }
 
-            selected_truck_spec = truck_specs.get(keys, {})
+            # selected_truck_spec = truck_specs.get(keys, {})
             print(selected_truck_spec)
 
 
@@ -1900,8 +1908,8 @@ def freeOutputJson2(request):
             prev = -1
             while int(roll) > 0:
                 filename, df,packaging_density,vol_occ_curr,perc_wasted,vol_container,box_coords, container_inf = perform_computation(df, container_toFit, strip_list, keys, index_)
-                print("boxcord",box_coords)
-                print("container",container_inf)
+                # print("boxcord",box_coords)
+                # print("container",container_inf)
                 curr = []
                 # num_placed.append((df['TotalNumStrips'][index_]-df['Rem_Strips'][index_])*df['NumOfBoxesPerStrip'][index_])
                 for i in range(len(df)):
@@ -1958,12 +1966,12 @@ def freeOutputJson2(request):
         container_indices = range(1,int(request.POST.get("sumContainers"))+1)
 
         threed_data = []
-        print("threed box",threed_boxes)
-        print("containserlist",container_list)
+        # print("threed box",threed_boxes)
+        # print("containserlist",container_list)
         base_dir = r'home\static\files'
         # base_dir = BASE_DIR
         for path in threed_boxes:
-            print("path",path)
+            # print("path",path)
             full_path = os.path.join(base_dir, os.path.basename(path))
             try:
                 with open(full_path, 'r') as file:
