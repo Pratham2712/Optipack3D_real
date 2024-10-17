@@ -39,7 +39,7 @@ class JWTAuthenticationMiddleware:
             '/send_otp_to_email',
             '/verify_otp',
             '/verify_login',
-            "/freeOutputJson2",
+            "/freeOutputJson",
         ]
         if any(request.path.startswith(path) for path in protected_paths):
             token = request.COOKIES.get('jwt_token')  # Extract the JWT from the cookie
@@ -68,6 +68,8 @@ class JWTAuthenticationMiddleware:
                 request.user_email = payload.get('email')
                 request.userType = payload.get('userType')
                 request.company = payload.get("company")
+            else :
+                request.company =  ""
         # Proceed with the request if no token or valid token
         response = self.get_response(request)
         return response
