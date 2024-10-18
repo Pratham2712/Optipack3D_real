@@ -899,8 +899,8 @@ def perform_computation(df,container_toFit,strip_list,key,roll):
     if len(box_storer)!=0:
         box_storer.append({"last_box_y":container_toFit.length-y_min})
         
-    box_coords_filename = f'home/ec2-user/Optipack3D_real/static/files/box_coordinates_{roll}_{key}.json'
-    container_info_filename = f'home/ec2-user/Optipack3D_real/static/files/container_info_{roll}_{key}.json'
+    box_coords_filename = f'home/static/files/box_coordinates_{roll}_{key}.json'
+    container_info_filename = f'home/static/files/container_info_{roll}_{key}.json'
 
     with open(box_coords_filename, 'w') as file:
         json.dump(box_storer, file)
