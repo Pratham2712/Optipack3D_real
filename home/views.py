@@ -734,24 +734,24 @@ def freeOutputJson(request):
         container_indices = range(1,int(request.POST.get("sumContainers"))+1)
         # print(threed_boxes)
         # print(container_inf)
-    threed_data = []
-    # base_dir = r'home\static\files'
-    base_dir = BASE_DIR
-    for path in threed_boxes:
-        full_path = os.path.join(base_dir, STATIC_URL, os.path.basename(path))
-        try:
-            with open(full_path, 'r') as file:
-                threed_data.append(json.load(file))
-        except FileNotFoundError:
-            return JsonResponse({"error": f"File not found: {full_path}"}, status=404)
-    containerList = []
-    for path in container_list:
-        full_path = os.path.join(base_dir, STATIC_URL, os.path.basename(path))
-        try:
-            with open(full_path, 'r') as file:
-                containerList.append(json.load(file))
-        except FileNotFoundError:
-            return JsonResponse({"error": f"File not found: {full_path}"}, status=404)
+        threed_data = []
+        # base_dir = r'home\static\files'
+        base_dir = BASE_DIR
+        for path in threed_boxes:
+            full_path = os.path.join(base_dir, STATIC_URL, os.path.basename(path))
+            try:
+                with open(full_path, 'r') as file:
+                    threed_data.append(json.load(file))
+            except FileNotFoundError:
+                return JsonResponse({"error": f"File not found: {full_path}"}, status=404)
+        containerList = []
+        for path in container_list:
+            full_path = os.path.join(base_dir, STATIC_URL, os.path.basename(path))
+            try:
+                with open(full_path, 'r') as file:
+                    containerList.append(json.load(file))
+            except FileNotFoundError:
+                return JsonResponse({"error": f"File not found: {full_path}"}, status=404)
 
         context = {
             'packaging_density': packd_list,
