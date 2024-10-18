@@ -12,7 +12,9 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -164,13 +166,20 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',  # Default backend
     'home.authentication.EmailBackend',  # Custom email-based backend
 ]
+FILE_UPLOAD_HANDLERS = [
+       'django.core.files.uploadhandler.MemoryFileUploadHandler',
+       'django.core.files.uploadhandler.TemporaryFileUploadHandler',
+]
 CSRF_COOKIE_SAMESITE = 'None'
 SESSION_COOKIE_SAMESITE = 'None'
 CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_HTTPONLY = True
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
+    'http://localhost:8081',
     'http://127.0.0.1:8000',
+    'http://localhost:19006',
+    'http://192.168.0.115:19006',
 ]
 CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
  
@@ -213,3 +222,12 @@ DEFAULT_FROM_EMAIL = "masterpalace12345@gmail.com"
 
 
 LOGIN_URL = 'login'
+
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME')
+AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+
+MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'

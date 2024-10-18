@@ -40,6 +40,7 @@ class JWTAuthenticationMiddleware:
             '/verify_otp',
             '/verify_login',
             "/freeOutputJson",
+            # "/upload_user_image",
         ]
         if any(request.path.startswith(path) for path in protected_paths):
             token = request.COOKIES.get('jwt_token')  # Extract the JWT from the cookie
