@@ -20,8 +20,12 @@ import math
 import re
 from django.views.decorators.csrf import csrf_protect
 import numpy as np
+from django.core.mail import send_mail
+from django.utils import timezone
 import os
-from core.settings import BASE_DIR, STATIC_URL
+import jwt
+from datetime import timedelta, datetime
+from core.settings import SECRET_KEY,DEFAULT_FROM_EMAIL,BASE_DIR, STATIC_URL
 
 
 truck_specs = {
@@ -47,6 +51,17 @@ truck_specs = {
     },
     # Add more specifications as needed
 }
+# SECRET_KEY = settings.SECRET_KEY 
+def generate_jwt_token(email_id,userType,company):
+    expiration_time = datetime.utcnow() + timedelta(hours=5)
+    payload = {
+        'email': email_id,
+        'userType':userType,
+        "company":company,
+        'exp': expiration_time  # Expiration time for the token
+    }
+    token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+    return token
 
 def get_csrf_token(request):
     csrf_token = get_token(request)
@@ -69,7 +84,6 @@ def freeTrial(request):
 
 def joinCreateOrganisation(request):
     return render(request, 'loginSignup.html')  # Assuming this is your join/create organisation template
-
 
 def additionalInformation(request):
     if request.method == 'POST':
@@ -497,11 +511,8 @@ def freeOutputJson(request):
     if request.method == 'POST':
         num_types = request.POST.get('numTypes')
         total_containers = request.POST.get('totalContainers')
-        num_containers = int(request.POST.get('numContainers'))
-        # print(num_types)
-
-        # print("num_c",num_containers)
-        print(request.POST)
+        # num_containers = int(request.POST.get('numContainers'))
+        company_name = request.company
 
         # Collect box details
         box_details = []
@@ -579,10 +590,10 @@ def freeOutputJson(request):
                     'max_weight': custom_max_weight
                 }
             container_count = len(total_containers)
-            container_data[container_type] = num_containers
+            container_data[container_type] = int(request.POST.get(f'numContainers{i}'))
 
         # print(truck_specs)
-        # print(container_data)
+        print(container_data)
         # container_data = {}
 
         # for i in range(1, total_containers + 1):
@@ -624,7 +635,21 @@ def freeOutputJson(request):
 
 
         for keys, values in container_data.items():
-            selected_truck_spec = truck_specs.get(keys, {})
+            company = ""
+            container = ""
+            if company_name:
+                company = Company.objects.filter(company_name=company_name).first()  # Assuming request.company gives the company name
+                container = Container.objects.filter(container_name=keys, company=company).first()
+            if company and container:
+                selected_truck_spec = {
+                    'length_container': container.container_length if container else None,
+                    'width_container': container.container_width if container else None,
+                    'height_container': container.container_height if container else None,
+                    'max_weight': container.max_gross_weight if container else None
+                }
+            else:
+                selected_truck_spec = truck_specs.get(keys, {})
+
             if outer_index == 0:
                 df, container_toFit, strip_list = DataProcess(df, selected_truck_spec, 1, 1, data)
                 for i in range(len(df)):
@@ -706,33 +731,33 @@ def freeOutputJson(request):
         df_ht.index+=1
         # print(df_ht)
         df_ht = df_ht.to_html(classes='data')
-        container_indices = range(1,num_containers+1)
+        container_indices = range(1,int(request.POST.get("sumContainers"))+1)
         # print(threed_boxes)
         # print(container_inf)
-    threed_data = []
-    # base_dir = r'home\static\files'
-    # base_dir = BASE_DIR
-    base_dir = "/home/ec2-user/Optipack3D_real/static/"
-    print("**************BASE DIR ************ -> ", BASE_DIR)
-    print("**************STATIC_URL ************ -> ", STATIC_URL)
+        threed_data = []
+        # base_dir = r'home\static\files'
+        # base_dir = BASE_DIR
+        base_dir = "/home/ec2-user/Optipack3D_real/static/"
+        print("**************BASE DIR ************ -> ", BASE_DIR)
+        print("**************STATIC_URL ************ -> ", STATIC_URL)
 
-    for path in threed_boxes:
-        print("**************path ************ -> ", path)
-        full_path = os.path.join(base_dir, path)
-        print("full path ********************* -> ", full_path)
-        try:
-            with open(full_path, 'r') as file:
-                threed_data.append(json.load(file))
-        except FileNotFoundError:
-            return JsonResponse({"error": f"File not found: {full_path}"}, status=404)
-    containerList = []
-    for path in container_list:
-        full_path = os.path.join(base_dir, path)
-        try:
-            with open(full_path, 'r') as file:
-                containerList.append(json.load(file))
-        except FileNotFoundError:
-            return JsonResponse({"error": f"File not found: {full_path}"}, status=404)
+        for path in threed_boxes:
+            print("**************path ************ -> ", path)
+            full_path = os.path.join(base_dir, path)
+            print("full path ********************* -> ", full_path)
+            try:
+                with open(full_path, 'r') as file:
+                    threed_data.append(json.load(file))
+            except FileNotFoundError:
+                return JsonResponse({"error": f"File not found: {full_path}"}, status=404)
+        containerList = []
+        for path in container_list:
+            full_path = os.path.join(base_dir, path)
+            try:
+                with open(full_path, 'r') as file:
+                    containerList.append(json.load(file))
+            except FileNotFoundError:
+                return JsonResponse({"error": f"File not found: {full_path}"}, status=404)
 
         context = {
             'packaging_density': packd_list,
@@ -747,11 +772,11 @@ def freeOutputJson(request):
             'sku_info':[
             [int(sku[0]), float(sku[1]), float(sku[2]), float(sku[3]), float(sku[4])] 
             for sku in sku_info
-        ],
+            ],
             'box_info':[
             [float(info) for info in box] 
             for box in box_info
-        ],
+            ],
             'df':df_ht
         }
         # print(num_placed)
@@ -759,3 +784,1241 @@ def freeOutputJson(request):
         return JsonResponse(context, safe=False)  # Redirect to a success page
     # return render(request, 'freeOutput.html')
     return JsonResponse({"error": "Invalid request"}, status=400)
+
+def check_email(request):
+    email_id = request.POST.get('email')
+    user_exists = Users.objects.filter(email_id=email_id).exists()
+    if user_exists:
+        return JsonResponse({"ERROR": "User already exist try login"}, status=400)
+    return JsonResponse({"SUCCESS": "Email is not register"}, status=400)
+
+
+def send_otp_to_email(request):
+    print(f"User email in view: {getattr(request, 'user_email', 'None')}")
+    if hasattr(request, 'user_email'):
+        return JsonResponse({'ERROR': f'Already logged in as {request.user_email}!'})
+    # Step 1: Get the email from the request (assuming it's a POST request)
+    email_id = request.POST.get('email')
+    
+    if not email_id:
+        return JsonResponse({"ERROR": "Company Email is required"}, status=400)
+    
+    # Step 2: Generate a 6-digit OTP
+    otp = str(random.randint(100000, 999999))
+
+    # Step 3: Save OTP and email_id in the database
+    otp_entry, created = OTPRegistration.objects.get_or_create(email_id=email_id)
+    
+    # If OTP entry exists, update the fields
+    otp_entry.otp = otp
+    otp_entry.isVerified = False
+    otp_entry.otp_sent_time = timezone.now()
+    otp_entry.expired = False
+    otp_entry.save()
+
+    # Step 4: Send the OTP via email
+    subject = 'Your OTP Code'
+    message = f'Your OTP code is {otp}. It is valid for 15 minutes.'
+    email_from = DEFAULT_FROM_EMAIL
+    recipient_list = [email_id]
+    
+    try:
+        send_mail(subject, message, email_from, recipient_list)
+        return JsonResponse({"SUCCESS": "OTP send successfully","sendTime":f"{otp_entry.otp_sent_time}"}, status=200)
+    except Exception as e:
+        return JsonResponse({"ERROR": f"Failed to send OTP. Error: {str(e)}"}, status=500)
+
+def verify_otp(request):
+    # Step 1: Get the email and otp from the request
+    email_id = request.POST.get('email')
+    otp_input = request.POST.get('otp')
+    companyname = request.POST.get('company_name')
+    
+    if not email_id or not otp_input:
+        return JsonResponse({"ERROR": "Email and OTP are required"}, status=400)
+    
+    try:
+        # Step 2: Fetch the latest OTP entry for the given email
+        otp_entry = OTPRegistration.objects.filter(email_id=email_id).latest('otp_sent_time')
+        
+        # Step 5: Check if the OTP is valid
+        if otp_entry.otp != otp_input:
+            return JsonResponse({"ERROR": "Invalid OTP"}, status=400)
+        # Step 3: Check if the OTP has already been verified
+        if otp_entry.isVerified:
+            return JsonResponse({"ERROR": "OTP has already been verified"}, status=400)
+        time_difference = timezone.now() - otp_entry.otp_sent_time
+        # Step 4: Check if the OTP is expired
+        if otp_entry.expired:
+            return JsonResponse({"ERROR": "OTP has expired"}, status=400)
+        
+        if time_difference > timedelta(minutes=15):
+            # Mark the OTP as expired
+            otp_entry.expired = True
+            otp_entry.save()
+            return JsonResponse({"ERROR": "OTP has expired"}, status=400)
+        
+        # Step 6: Mark OTP as verified
+        otp_entry.isVerified = True
+        otp_entry.save()
+        company, created = Company.objects.get_or_create(company_name=companyname)
+    
+        if created and not company.company_code:
+            company.company_code = company.generate_unique_code()
+            company.save()
+        # Determine user type based on user count
+        if company.user_count == 0:
+            user_type = "Company_Admin"
+        else:
+            user_type = "None"
+        user = Users(
+            email_id=email_id,
+            user_id=generate_unique_user_id(),
+            user_first_name='DefaultFirstName',  # Replace with actual form data or defaults
+            user_last_name='DefaultLastName',    # Replace with actual form data or defaults
+            user_type=user_type,
+            user_status='Active',
+            is_authenticated=True,
+            company=company,
+            first_login = timezone.now()
+        )
+        user.save()
+
+        # Update the user count in the company
+        company.user_count += 1
+        company.save()
+        token = generate_jwt_token(email_id,user.user_type,companyname)
+        print(token)
+        response = JsonResponse({"SUCCESS": {
+                'email': email_id,
+                'userType': user.user_type,
+                "message" : "OTP verified successfully",
+                "company" : user.company_id
+            }}, status=200)
+        response.set_cookie(
+            'jwt_token',  
+            token,        
+            max_age=18000, 
+            # httponly=True, 
+            secure=True,  
+            samesite='None'  
+        )
+        if user.user_type != "Company_Admin":
+            admin_user = Users.objects.filter(company=company, user_type="Company_Admin").first()
+            if admin_user:
+                send_mail(
+                    subject="New User Registered in Your Company",
+                    message=f"A new user with email {email_id} has registered with your company '{companyname}'.",
+                    from_email=DEFAULT_FROM_EMAIL,
+                    recipient_list=[admin_user.email_id],  # Send to the company admin's email
+                    fail_silently=False,
+                )
+        return response
+    
+    except OTPRegistration.DoesNotExist:
+        return JsonResponse({"ERROR": "No OTP found for this email"}, status=404)
+
+def verify_login(request):
+    # Step 1: Get the email and otp from the request
+    email_id = request.POST.get('email')
+    otp_input = request.POST.get('otp')
+    company = request.POST.get("company_name")
+    if not email_id or not otp_input:
+        return JsonResponse({"ERROR": "Email and OTP are required"}, status=400)
+    
+    user_exists = Users.objects.filter(email_id=email_id).first()
+    if not user_exists:
+        return JsonResponse({"ERROR": "User not registered"}, status=400)
+    try:
+        # Step 2: Fetch the latest OTP entry for the given email
+        otp_entry = OTPRegistration.objects.filter(email_id=email_id).latest('otp_sent_time')
+        
+        # Step 5: Check if the OTP is valid
+        if otp_entry.otp != otp_input:
+            return JsonResponse({"ERROR": "Invalid OTP"}, status=400)
+        # Step 3: Check if the OTP has already been verified
+        if otp_entry.isVerified:
+            return JsonResponse({"ERROR": "OTP has already been verified"}, status=400)
+        time_difference = timezone.now() - otp_entry.otp_sent_time
+        # Step 4: Check if the OTP is expired
+        if otp_entry.expired:
+            return JsonResponse({"ERROR": "OTP has expired"}, status=400)
+        
+        if time_difference > timedelta(minutes=15):
+            # Mark the OTP as expired
+            otp_entry.expired = True
+            otp_entry.save()
+            return JsonResponse({"ERROR": "OTP has expired"}, status=400)
+        
+        # Step 6: Mark OTP as verified
+        otp_entry.isVerified = True
+        otp_entry.save()
+        if user_exists:
+            user_exists.last_login = timezone.now()
+            user_exists.user_status = "Active"
+            user_exists.save()
+            token = generate_jwt_token(email_id,user_exists.user_type,company)
+            response = JsonResponse({"SUCCESS": {
+                'email': email_id,
+                'userType': user_exists.user_type,
+                "message" : "OTP verified successfully",
+                "company" : user_exists.company_id
+            }}, status=200)
+            response.set_cookie(
+                'jwt_token',  
+                token,        
+                max_age=18000, 
+                # httponly=True, 
+                secure=True,  
+                samesite='None' 
+            )
+            return response
+        else :
+            return JsonResponse({"ERROR": "User not registered"}, status=400)
+        
+    
+    except OTPRegistration.DoesNotExist:
+        return JsonResponse({"ERROR": "No OTP found for this email"}, status=404)
+
+def check_login(request):
+    if hasattr(request, 'user_email'):
+        return JsonResponse({'SUCCESS': {
+                'email': request.user_email,
+                'userType': request.userType,
+                'company' : request.company,
+                "message" : "User is login"
+            }})
+    else:
+        return JsonResponse({'Error': 'Unauthorized access, please log in'}, status=401)
+
+def add_permission(request):
+    if request.method == 'POST':
+        if not hasattr(request,"userType") and not request.userType == "Company_Admin":
+            return JsonResponse({"ERROR": "Login with admin account"}, status=400)
+        try: 
+            data = json.loads(request.body)  # Load JSON data from the request body
+            company = ""
+            for record in data:
+                company_name = record.get('company')
+                company = company_name
+                user_type_name = record.get('user_type')
+                dashboard_name = record.get('dashboard')
+                allowed = record.get('allowed')
+
+                # Step 1: Retrieve or create the related objects (Company, UserType, Dashboard)
+                company = Company.objects.get(company_name=company_name)
+                dashboard = Dashboard.objects.get(name=dashboard_name)
+                user_type = UserType.objects.get(name=user_type_name)
+
+                # Step 2: Check if a DashboardPermission record exists for this combination
+                permission, created = DashboardPermission.objects.get_or_create(
+                    company=company,
+                    user_type=user_type,
+                    dashboard=dashboard,
+                    defaults={'allowed': allowed}
+                )
+
+                # Step 3: If it exists, update the 'allowed' field if it's different
+                if not created:
+                    if permission.allowed != allowed:
+                        permission.allowed = allowed
+                        permission.save()
+            
+            permissions = DashboardPermission.objects.filter(company=company)
+            print("permissions")
+            print(permissions)
+            result = []
+            for perm in permissions:
+                print(perm)
+                result.append({
+                    "company": perm.company.company_name,
+                    "user_type": perm.user_type.name,
+                    "dashboard": perm.dashboard.name,
+                    "allowed": perm.allowed
+                })
+            # print(result)
+
+            return JsonResponse({"SUCCESS": result}, status=200)
+
+        except Company.DoesNotExist:
+            return JsonResponse({"ERROR": f"Company '{company_name}' does not exist"}, status=400)
+        except UserType.DoesNotExist:
+            return JsonResponse({"ERROR": f"User type '{user_type_name}' does not exist"}, status=400)
+        except Dashboard.DoesNotExist:
+            return JsonResponse({"ERROR": f"Dashboard '{dashboard_name}' does not exist"}, status=400)
+        except Exception as e:
+            return JsonResponse({"ERROR": str(e)}, status=500)
+    
+    return JsonResponse({"ERROR": "Invalid request method"}, status=405)
+
+def get_permissions(request):
+    if hasattr(request, 'userType') and request.userType == "Company_Admin":
+        company_name = request.company
+        try:
+            company = Company.objects.get(company_name=company_name)
+            
+            permissions = DashboardPermission.objects.filter(company=company)
+            
+            result = []
+            for perm in permissions:
+                result.append({
+                    "company": perm.company.company_name,
+                    "user_type": perm.user_type.name,  
+                    "dashboard": perm.dashboard.name, 
+                    "allowed": perm.allowed
+                })
+            
+            return JsonResponse({"SUCCESS": result}, status=200)
+
+        except Company.DoesNotExist:
+            return JsonResponse({"ERROR": "Company not found"}, status=404)
+    
+    else:
+        return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin can view this data'}, status=403)
+def add_loadplan(request):
+    if request.method == 'POST':
+        if hasattr(request, 'userType') and request.userType == "Company_Admin":
+            company_name = request.company  
+            
+            try:
+                company = Company.objects.get(company_name=company_name)
+                data = json.loads(request.body)
+
+                shipping_location = data.get("shipping_location", [])
+                destination_location = data.get("destination_location", [])
+                container_type = data.get("container_type", "")
+
+                if shipping_location and isinstance(shipping_location, list):
+                    for location in shipping_location:
+                        if location not in company.shipping_location:
+                            company.shipping_location.append(location)
+                if destination_location and isinstance(destination_location, list):
+                    for location in destination_location:
+                        if location not in company.destination_location:
+                            company.destination_location.append(location) 
+                if container_type:
+                    if container_type not in company.container_type:
+                        company.container_type.append(container_type)  
+
+                company.save()
+
+                result = {
+                    "company": company.company_name,
+                    "shipping_location": company.shipping_location,
+                    "destination_location": company.destination_location,
+                    "container_type": company.container_type,
+                }
+
+                return JsonResponse({"SUCCESS": result}, status=200)
+
+            except Company.DoesNotExist:
+                return JsonResponse({"ERROR": "Company not found"}, status=404)
+        
+        else:
+            return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin can add this data'}, status=403)
+
+    else:
+        return JsonResponse({'ERROR': 'Invalid request method. Only POST requests are allowed.'}, status=405)
+
+def get_loadplan(request):
+    if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_planner"]:
+        company_name = request.company
+        try:
+            company = Company.objects.get(company_name=company_name)
+            result = {
+                "company": company.company_name,
+                "shipping_location": company.shipping_location, 
+                "destination_location": company.destination_location,  
+                "container_type": company.container_type,  
+            }
+            return JsonResponse({"SUCCESS": result}, status=200)
+
+        except Company.DoesNotExist:
+            return JsonResponse({"ERROR": "Company not found"}, status=404)
+    
+    else:
+        return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin and Company planner can view this data'}, status=403)
+
+def add_container(request):
+    if request.method == 'POST':
+        if hasattr(request, 'userType') and request.userType == "Company_Admin":
+            company_name = request.company  
+            
+            try:
+                company = Company.objects.get(company_name=company_name)
+                
+                data = json.loads(request.body)
+                
+                container_height = data.get('container_height')
+                container_width = data.get('container_width')
+                container_length = data.get('container_length')
+                container_name = data.get('container_name')
+                
+                if not all([container_height, container_width, container_length, container_name]):
+                    return JsonResponse({"ERROR": "Missing required fields"}, status=400)
+                
+                # Create a new container entry
+                new_container = Container(
+                    container_id=company.generate_unique_code(),
+                    container_name=container_name,
+                    container_height=container_height,
+                    container_width=container_width,
+                    container_length=container_length,
+                    company=company  # Associate the container with the company
+                )
+                
+                # Save the new container
+                new_container.save()
+
+                # Prepare the success response
+                result = company.containers.values_list('container_name', flat=True)
+                
+                return JsonResponse({"SUCCESS": {
+                'result': list(result),
+                "message" : "Container added successfully"
+            }}, status=201)
+            
+            except Company.DoesNotExist:
+                return JsonResponse({"ERROR": "Company not found"}, status=404)
+        
+        else:
+            return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin can add containers'}, status=403)
+    
+    return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
+
+def get_container(request):
+
+    if hasattr(request, 'userType') and request.userType == "Company_Admin":
+        company_name = request.company
+        try:
+            company = Company.objects.get(company_name=company_name)
+            result = company.containers.values_list('container_name', flat=True)
+            
+            return JsonResponse({"SUCCESS": list(result)}, status=200)
+
+        except Company.DoesNotExist:
+            return JsonResponse({"ERROR": "Company not found"}, status=404)
+    
+    else:
+        return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin can view this data'}, status=403)
+
+def send_email(request):
+    if request.method == 'POST':
+        if hasattr(request, 'userType') and request.userType == "Company_Admin":
+            company_name = request.company  
+            
+            try:
+                data = json.loads(request.body)
+                email_id = data.get("email")
+                user_type = data.get("userType")
+                user_exists = Users.objects.filter(email_id=email_id).exists()
+                if not email_id or not user_type:
+                    return JsonResponse({"ERROR": "Email and userType are required"}, status=400)
+                if user_exists:
+                    return JsonResponse({"ERROR":"User already exist"}, status=400)
+                company = Company.objects.get(company_name=company_name)
+                user = Users(
+                    email_id=email_id,
+                    user_id=generate_unique_user_id(),
+                    user_first_name='DefaultFirstName',  # Replace with actual form data or defaults
+                    user_last_name='DefaultLastName',    # Replace with actual form data or defaults
+                    user_type=user_type,
+                    user_status='Dormant',
+                    is_authenticated=True,
+                    company=company,
+                    first_login = timezone.now()
+                )
+                user.save()
+                company.user_count += 1
+                company.save()
+                send_mail(
+                    subject=f"Invited to join the '{company_name}'",
+                    message=data.get("message"),
+                    from_email=DEFAULT_FROM_EMAIL,
+                    recipient_list=[data.get("email")],  # Send to the company admin's email
+                    fail_silently=False,
+                )
+                return JsonResponse({"SUCCESS": "Email send successfully"}, status=201)
+            except Company.DoesNotExist:
+                return JsonResponse({"ERROR": "Company not found"}, status=404)
+            except Exception as e:
+                return JsonResponse({"ERROR": str(e)}, status=500)
+        else:
+            return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin can add containers'}, status=403)
+    return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
+
+def get_allusers(request):
+    
+    if hasattr(request, 'userType') and request.userType == "Company_Admin":
+        company_name = request.company
+        try:
+            company = Company.objects.get(company_name=company_name)
+
+            # Filter users based on the company
+            users = Users.objects.filter(company=company)
+
+            # Prepare the result
+            user_data = []
+            for user in users:
+                user_data.append({
+                    "user_id": user.user_id,
+                    "email_id": user.email_id,
+                    "user_first_name": user.user_first_name,
+                    "user_last_name": user.user_last_name,
+                    "user_type": user.user_type,
+                    "user_status": user.user_status,
+                    "first_login": user.first_login,
+                    "last_login": user.last_login,
+                    "is_active": user.is_active,
+                    "is_authenticated": user.is_authenticated,
+                })
+
+            # Return the JSON response with the user data
+            return JsonResponse({"SUCCESS": {
+                "result": user_data,
+                "message":"User fetched successfully"
+            }}, status=200)
+
+        except Exception as e:
+                return JsonResponse({"ERROR": str(e)}, status=500)
+    
+    else:
+        return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin can view this data'}, status=403)
+
+def get_usertype(request):
+
+    if hasattr(request, 'userType') and request.userType == "Company_Admin":
+        company_name = request.company
+        try:
+            user_types = UserType.objects.values_list('name', flat=True)
+            user_type_list = list(user_types)  
+
+            return JsonResponse({"SUCCESS": {
+                "result":user_type_list,
+                "message":"User type fetch successfully"
+            }}, status=200)
+
+
+        except Exception as e:
+            return JsonResponse({"ERROR": str(e)}, status=500)
+    
+    else:
+        return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin can view this data'}, status=403)
+
+def update_usertype(request):
+
+    if hasattr(request, 'userType') and request.userType == "Company_Admin":
+        company_name = request.company
+        try:
+            data = json.loads(request.body)
+            email_id = data.get("email")
+            user_type = data.get("userType")
+
+            if not email_id or not user_type:
+                return JsonResponse({"ERROR": "Email and userType are required"}, status=400)
+
+            user = Users.objects.filter(email_id=email_id, company=company_name).first()
+
+            if not user:
+                return JsonResponse({"ERROR": "User not found in the company"}, status=404)
+
+            # Update the user type
+            user.user_type = user_type
+            user.save()
+
+            return JsonResponse({"SUCCESS": {
+                "message":"Role updated successfully"
+            }}, status=200)
+
+        except Exception as e:
+            return JsonResponse({"ERROR": str(e)}, status=500)
+
+    else:
+        return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin can update user type'}, status=403)
+
+def remove_user(request):
+    if hasattr(request, 'userType') and request.userType == "Company_Admin":
+        company_name = request.company
+        try:
+            data = json.loads(request.body)
+            email_id = data.get("email")
+
+            if not email_id:
+                return JsonResponse({"ERROR": "Email are required"}, status=400)
+            user = Users.objects.filter(email_id=email_id, company=company_name).first()
+
+            if not user:
+                return JsonResponse({"ERROR": "User not found in the company"}, status=404)
+            company = user.company
+            user.delete()
+            if company.user_count > 0:
+                company.user_count -= 1
+                company.save()
+
+            return JsonResponse({"SUCCESS": {"message" : "User deleted successfully"}}, status=200)
+        except Exception as e:
+            return JsonResponse({"ERROR": str(e)}, status=500)
+    else:
+        return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin can remove users'}, status=403)
+
+def add_sku(request):
+    if hasattr(request, 'userType') and request.userType == "Company_Admin":
+        company_name = request.company
+        try:
+            data = json.loads(request.body)     
+            sku_name = data.get("sku_name")
+            sku_code = data.get("sku_code")
+            sku_description = data.get("sku_description", "")
+            sku_type = data.get("sku_type", "A")  # Defaulting to 'A' if not provided
+            gross_weight = data.get("gross_weight")
+            net_weight = data.get("net_weight", 0)  # Optional field
+            volume = data.get("volume", 0)  # Optional field
+            length = data.get("length")
+            width = data.get("width")
+            height = data.get("height")
+            number_of_cases = data.get("numberOfCases", 0)  # Optional field
+            tilt_allowed = data.get("tiltAllowed", False)
+            product_hierarchy = data.get("product_hierarchy", "")
+            incompatibility = data.get("incompatibility", "")
+            max_stack_height = data.get("max_stack_height", 0)
+
+            if not sku_name or not gross_weight or not length or not width or not height:
+                return JsonResponse({"ERROR": "Required fields are missing"}, status=400)
+
+            # Get the company object
+            company = Company.objects.filter(company_name=company_name).first()
+
+            if not company:
+                return JsonResponse({"ERROR": "Company not found"}, status=404)
+
+            # Creating the SKU object
+            # sku_code = f"{company_name}_{sku_name}" 
+
+            sku = SKU(
+                sku_code=sku_code,
+                sku_name=sku_name,
+                sku_description=sku_description,
+                sku_type=sku_type,
+                gross_weight=gross_weight,
+                net_weight=net_weight,
+                volume=volume,
+                length=length,
+                width=width,
+                height=height,
+                numberOfCases=number_of_cases,
+                tiltAllowed=tilt_allowed,
+                product_hierarchy=product_hierarchy,
+                incompatibility=incompatibility,
+                max_stack_height=max_stack_height,
+                company=company
+            )
+
+            # Save SKU object to the database
+            sku.save()
+
+            return JsonResponse({"SUCCESS": {"message" : "SKU added successfull","sku_code":sku_code}}, status=201)
+
+        except ValidationError as e:
+            return JsonResponse({"ERROR": str(e)}, status=400)
+
+        except Exception as e:
+            return JsonResponse({"ERROR": str(e)}, status=400)
+
+    return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin can add SKU"}, status=403)
+
+def get_sku(request):
+    if request.method == 'POST':
+        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_planner"]:
+            company_name = request.company
+            try:
+                company = Company.objects.filter(company_name=company_name).first()
+                data = json.loads(request.body)
+                page = int(data.get('page', 0)) 
+                page_size = int(data.get('pagesize', 3))
+
+                if not company:
+                    return JsonResponse({"ERROR": "Company not found"}, status=404)
+
+                total_sku = SKU.objects.filter(company=company).count()
+
+                skus = SKU.objects.filter(company=company).values(
+                    'sku_code', 'sku_name', 'gross_weight', 'length', 'width', 'height', 'tiltAllowed'
+                )[page * page_size: (page + 1) * page_size]
+
+                # Check if SKUs exist
+                if not skus:
+                    return JsonResponse({"ERROR": "No SKUs found for the company"}, status=404)
+
+                # Return SKU data as JSON response
+                return JsonResponse({"SUCCESS": {"message":"SKUs fetched successfully","result":list(skus),"total":total_sku}}, status=200, safe=False)
+
+            except Exception as e:
+                return JsonResponse({"ERROR": str(e)}, status=500)
+        
+        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin and Company_planner can view SKUs"}, status=403)
+    return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
+
+def delete_sku(request):
+    if request.method == 'POST':
+        if hasattr(request,'userType') and request.userType == "Company_Admin":
+            company_name = request.company
+            try:
+                data = json.loads(request.body)
+                sku_code = data.get("sku_code")
+                if not sku_code:
+                    return JsonResponse({"ERROR": "SKU code is required"}, status=400)
+                sku = SKU.objects.filter(sku_code=sku_code, company__company_name=company_name).first()
+                if not sku:
+                    return JsonResponse({"ERROR": "SKU not found or not associated with this company"}, status=404)
+                sku.delete()
+                return JsonResponse({"SUCCESS": {"message":"SKU deleted successfully"}}, status=200)
+            except Exception as e:
+                return JsonResponse({"ERROR": str(e)}, status=500)
+        
+        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin and Company_planner can view SKUs"}, status=403)
+    return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
+def generate_number():
+    """Generate a random order ID"""
+    return str(random.randint(1000000000, 9999999999))
+
+
+def add_or_edit_order(request):
+    if request.method == 'POST':
+        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_planner"]:
+            company_name = request.company
+            try:
+                data = json.loads(request.body)
+                destination_location = data.get("destination_location")
+                source_location = data.get("source_location")
+                planned_start_date = data.get("planned_start_date")
+                order_number = data.get("order_number")
+                order_id = data.get("order_id")
+
+                if not (destination_location and source_location and planned_start_date and order_number):
+                    return JsonResponse({"ERROR": "Missing required fields"}, status=400)
+                
+                # Find the company
+                company = Company.objects.filter(company_name=company_name).first()
+
+                if not company:
+                    return JsonResponse({"ERROR": "Company not found"}, status=404)
+
+                order = Order.objects.filter(order_number=order_number, company=company).first()
+                if order and not order_id:
+                    return JsonResponse({"ERROR": "Order already exist"}, status=404)
+                if order and order_id:
+                    # if not order:
+                    #     return JsonResponse({"ERROR": "Order not found"}, status=404)
+
+                    # Update the existing order
+                    order.destination_location = destination_location
+                    order.source_location = source_location
+                    order.planned_start_date = planned_start_date
+                    order.order_number = order_number
+                    order.save()
+
+                    message = "Order updated successfully"
+                else:
+                    # Generate a new order ID if creating a new order
+                    order_id = generate_number()
+
+                    # Create a new order
+                    order = Order.objects.create(
+                        order_id=order_id,
+                        company=company,
+                        destination_location=destination_location,
+                        source_location=source_location,
+                        planned_start_date=planned_start_date,
+                        order_number=order_number
+                    )
+                    message = "Order created successfully"
+
+                order_data = {
+                    "order_id": order.order_id,
+                    "source_location": order.source_location,
+                    "destination_location": order.destination_location,
+                    "planned_start_date": order.planned_start_date,
+                    "order_number": order.order_number,
+                }
+
+                return JsonResponse({"SUCCESS": {"message": message, "result": order_data}}, status=201)
+
+            except Exception as e:
+                return JsonResponse({"ERROR": str(e)}, status=500)
+        
+        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_planner can add or edit orders"}, status=403)
+    
+    return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
+
+
+def get_skuByCode(request):
+    if request.method == 'POST':
+        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_planner"]:
+            company_name = request.company
+            try:
+                data = json.loads(request.body)
+                sku_codes = data.get("sku_code")
+                if not sku_codes or not isinstance(sku_codes, list):
+                    return JsonResponse({"ERROR": "A valid list of SKU codes is required"}, status=400)
+
+                company = Company.objects.filter(company_name=company_name).first()
+                if not company:
+                    return JsonResponse({"ERROR": "Company not found"}, status=404)
+                skus = SKU.objects.filter(sku_code__in=sku_codes, company=company)
+
+                if not skus.exists():
+                    return JsonResponse({"ERROR": "No SKUs found for the given company and codes"}, status=404)
+                sku_data = [
+                    {
+                        "sku_code": sku.sku_code,
+                        "sku_name": sku.sku_name,
+                        "gross_weight": sku.gross_weight,
+                        "volume": sku.volume,
+                        "length": sku.length,
+                        "width": sku.width,
+                        "height": sku.height,
+                    }
+                    for sku in skus
+                ]
+
+                return JsonResponse({"SUCCESS": {"message": "SKU fetched successfully","result":sku_data}}, status=200)
+
+            except Exception as e:
+                return JsonResponse({"ERROR": str(e)}, status=500)
+        
+        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_planner can view SKUs"}, status=403)
+
+    return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
+
+def get_containerByName(request):
+    if request.method == 'POST':
+        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_planner"]:
+            company_name = request.company
+            try:
+                data = json.loads(request.body)
+                container_name = data.get("container_name")
+
+                if not container_name:
+                    return JsonResponse({"ERROR": "Container name is required"}, status=400)
+
+                company = Company.objects.filter(company_name=company_name).first()
+
+                if not company:
+                    return JsonResponse({"ERROR": "Company not found"}, status=404)
+
+                container = Container.objects.filter(container_name=container_name, company=company).first()
+
+                if not container:
+                    return JsonResponse({"ERROR": "Container not found for the given company and name"}, status=404)
+                container_data = {
+                    "container_id": container.container_id,
+                    "container_name": container.container_name,
+                    "length": container.container_length,
+                    "width": container.container_width,
+                    "height": container.container_height,
+                }
+
+                return JsonResponse({"SUCCESS": {"message": "Container fetched successfully", "result": container_data}}, status=200)
+
+            except Exception as e:
+                return JsonResponse({"ERROR": str(e)}, status=500)
+        
+        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_planner can view containers"}, status=403)
+
+    return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
+
+def get_orderByNumber(request):
+    if request.method == 'POST':
+        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_planner"]:
+            company_name = request.company
+            try:
+                data = json.loads(request.body)
+                order_number = data.get("order_number")
+
+                if not order_number:
+                    return JsonResponse({"ERROR": "Order number is required"}, status=400)
+
+                company = Company.objects.filter(company_name=company_name).first()
+
+                if not company:
+                    return JsonResponse({"ERROR": "Company not found"}, status=404)
+
+                order = Order.objects.filter(order_number=order_number, company=company).first()
+
+                if not order:
+                    return JsonResponse({"ERROR": "Order not found for the given company and number"}, status=404)
+
+                order_data = {
+                    "order_number": order.order_number,
+                    "source_location": order.source_location,
+                    "destination_location": order.destination_location,
+                    "planned_start_date": order.planned_start_date,
+                }
+
+                return JsonResponse({"SUCCESS": {"message": "Order fetched successfully", "result": order_data}}, status=200)
+
+            except Exception as e:
+                return JsonResponse({"ERROR": str(e)}, status=500)
+
+        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_planner can view orders"}, status=403)
+
+    return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
+
+def attach_skus_to_order(request):
+    if request.method == 'POST':
+        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_planner"]:
+            try:
+                data = json.loads(request.body)
+                order_number = data.get("order_number")
+                skus_data = data.get("skus")  
+
+                if not order_number or not skus_data:
+                    return JsonResponse({"ERROR": "Order number and SKUs data are required"}, status=400)
+
+                # Find the order by order_number
+                order = Order.objects.filter(order_number=order_number).first()
+
+                if not order:
+                    return JsonResponse({"ERROR": "Order not found"}, status=404)
+
+                # Iterate over the SKU data to attach each SKU to the order
+                for sku_info in skus_data:
+                    sku_code = sku_info.get("sku_code")
+                    quantity = sku_info.get("quantity", 1)  
+
+                    # Find the SKU by sku_code
+                    sku = SKU.objects.filter(sku_code=sku_code).first()
+
+                    if not sku:
+                        return JsonResponse({"ERROR": f"SKU with code {sku_code} not found"}, status=404)
+
+                    order_sku, created = OrderSKU.objects.update_or_create(
+                        order=order,
+                        sku=sku,
+                        defaults={'quantity': quantity}
+                    )
+
+                return JsonResponse({"SUCCESS": {"message":"SKUs saved successfully"}}, status=200)
+
+            except Exception as e:
+                return JsonResponse({"ERROR": str(e)}, status=500)
+
+        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_planner can attach SKUs"}, status=403)
+
+    return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
+
+def get_skus_by_order_numbers(request):
+    if request.method == 'POST':
+        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_planner"]:
+            try:
+                data = json.loads(request.body)
+                order_numbers = data.get("order_numbers")  
+
+                if not order_numbers or not isinstance(order_numbers, list):
+                    return JsonResponse({"ERROR": "Order numbers array is required"}, status=400)
+
+                # Fetch all orders that match the provided order numbers
+                orders = Order.objects.filter(order_number__in=order_numbers)
+
+                if not orders.exists():
+                    return JsonResponse({"ERROR": "No orders found for the given order numbers"}, status=404)
+
+                # Initialize an empty dictionary to store order and SKU data
+                order_skus_data = {}
+
+                # Loop through the orders and fetch SKUs associated with each order
+                for order in orders:
+                    skus_in_order = OrderSKU.objects.filter(order=order)
+
+                    # Create a list to store SKU data for each order
+                    sku_list = []
+                    for order_sku in skus_in_order:
+                        sku = order_sku.sku
+                        sku_list.append({
+                            "sku_code": sku.sku_code,
+                            "sku_name": sku.sku_name,
+                            "quantity": order_sku.quantity,
+                            "gross_weight": sku.gross_weight,
+                            "volume": sku.volume,
+                            "netWeight": sku.net_weight,
+                            "length": sku.length,
+                            "width": sku.width,
+                            "height": sku.height,
+                            "rotationAllowed": sku.tiltAllowed,
+                        })
+
+                    # Add SKU data to the corresponding order number in the dictionary
+                    order_skus_data[order.order_number] = sku_list
+
+                return JsonResponse({"SUCCESS": {"message": "SKUs fetched successfully", "result": order_skus_data}}, status=200)
+
+            except Exception as e:
+                return JsonResponse({"ERROR": str(e)}, status=500)
+
+        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_planner can view SKUs"}, status=403)
+
+    return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
+
+def get_skuCodeAndName(request):
+    if request.method == 'POST':
+        if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_planner"]:
+            company_name = request.company
+            try:
+                company = Company.objects.filter(company_name=company_name).first()
+
+                if not company:
+                    return JsonResponse({"ERROR": "Company not found"}, status=404)
+
+                skus = SKU.objects.filter(company=company)
+
+                if not skus.exists():
+                    return JsonResponse({"ERROR": "No SKUs found for this company"}, status=404)
+
+                # Create a list of dictionaries containing sku_code and sku_name
+                sku_data = [{"sku_code": sku.sku_code, "sku_name": sku.sku_name} for sku in skus]
+
+                return JsonResponse({"SUCCESS": {"message": "SKUs fetched successfully", "result": sku_data}}, status=200)
+
+            except Exception as e:
+                return JsonResponse({"ERROR": str(e)}, status=500)
+
+        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_planner can view SKUs"}, status=403)
+
+    return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
+
+def freeOutputJson2(request):
+    if request.method == 'POST':
+        num_types = request.POST.get('numTypes')
+        total_containers = request.POST.get('totalContainers')
+        # num_containers = int(request.POST.get('numContainers'))
+        company_name = request.company
+
+
+        # Collect box details
+        box_details = []
+        for i in range(int(num_types)):
+            box = {
+                'Gross Weight (in KGs)': request.POST.get(f'grossWeight{i}'),
+                'Net Weight (in KGs)': request.POST.get(f'netWeight{i}'),
+                'Volume (in m^3)': request.POST.get(f'volume{i}'),
+                'Temperature (in deg  C)': request.POST.get(f'temperature{i}'),
+                'Length (in mm)': request.POST.get(f'length{i}'),
+                'Width (in mm)': request.POST.get(f'width{i}'),
+                'Height (in mm)': request.POST.get(f'height{i}'),
+                'Number of Cases': request.POST.get(f'numberOfCases{i}'),
+                'Rotation Allowed (1 - YES, 0 - NO)': 1 if request.POST.get(f'rotationAllowed{i}') == 'on' else 0,
+                'color': request.POST.get(f'color{i}')
+            }
+            box_details.append(box)
+
+        # Create DataFrame
+
+        def rgba_string_to_hex(rgba_string):
+            # Use regex to extract RGBA values from the string
+            match = re.match(r'rgba\((\d+(\.\d+)?),\s*(\d+(\.\d+)?),\s*(\d+(\.\d+)?),\s*([0-1](\.\d+)?)\)', rgba_string)
+            
+            if not match:
+                raise ValueError("Invalid RGBA string format")
+            
+            # Extracting the values and converting them to float
+            r, g, b, a = map(float, [match.group(1), match.group(3), match.group(5), match.group(7)])
+            
+            # Ensure that RGB values are within the valid range [0, 255]
+            r = int(max(0, min(255, r)))
+            g = int(max(0, min(255, g)))
+            b = int(max(0, min(255, b)))
+            
+            # Convert RGB to hex
+            hex_color = f'#{r:02X}{g:02X}{b:02X}'
+            
+            # If alpha is not 1, include it in the hex code
+            if a < 1.0:
+                a = int(a * 255)
+                hex_color += f'{a:02X}'
+            
+            return hex_color
+
+        df = pd.DataFrame(box_details)
+        for i in range(len(df['color'])):
+            df.loc[i,'color']= rgba_string_to_hex(df['color'][i])
+
+        # Collect container details
+        print(df.columns)
+        container_data = {}
+        for i in range(int(total_containers)):
+            container_type = request.POST.get(f'containerType{i}')
+ 
+            if container_type == "Custom Container":
+                custom_length = int(request.POST.get('customLength'))
+                custom_width = int(request.POST.get('customWidth'))
+                custom_height = int(request.POST.get('customHeight'))
+                custom_max_weight = int(request.POST.get('customMaxWeight'))
+                truck_specs["Custom Container"] = {
+                    'length_container': custom_length,
+                    'width_container': custom_width,
+                    'height_container': custom_height,
+                    'max_weight': custom_max_weight
+                }
+            container_count = len(total_containers)
+            container_data[container_type] = int(request.POST.get(f'numContainers{i}'))
+            print(container_data)
+
+        save_data_to_files(df, container_data)  # Assuming you have a function for this
+        data = deepcopy(df)
+        df_storer = []
+        img_paths = []
+        threed_boxes= []
+        container_list = []
+        packd_list = []
+        sku_info = []
+        vol_curr_list = []
+        perc_wasted_list = []
+        vol_container_list = []
+        num_placed = [0]*len(df)
+        outer_index = 0
+        box_info =  []
+        rem_Strip_calc = []
+        rem_boxes= []
+        # df.index += 1
+        
+        
+
+
+        for keys, values in container_data.items():
+            company = Company.objects.filter(company_name=company_name).first()  # Assuming request.company gives the company name
+            container = Container.objects.filter(container_name=keys, company=company).first()
+            selected_truck_spec = {
+                'length_container': container.container_length if container else None,
+                'width_container': container.container_width if container else None,
+                'height_container': container.container_height if container else None,
+                'max_weight': container.max_gross_weight if container else None
+            }
+
+            # selected_truck_spec = truck_specs.get(keys, {})
+            print(selected_truck_spec)
+
+
+            if outer_index == 0:
+                df, container_toFit, strip_list = DataProcess(df, selected_truck_spec, 1, 1, data)
+                for i in range(len(df)):
+                    rem_Strip_calc.append(df['Rem_Strips'][i])
+                    rem_boxes.append(df['Rem_Boxes'][i])
+                
+            else:
+                df, container_toFit, strip_list = DataProcess(df, selected_truck_spec, 1, 2, data)
+
+            roll = values
+            # print(df)
+
+            index_ = 0
+            prev = -1
+            while int(roll) > 0:
+                filename, df,packaging_density,vol_occ_curr,perc_wasted,vol_container,box_coords, container_inf = perform_computation(df, container_toFit, strip_list, keys, index_)
+                # print("boxcord",box_coords)
+                # print("container",container_inf)
+                curr = []
+                # num_placed.append((df['TotalNumStrips'][index_]-df['Rem_Strips'][index_])*df['NumOfBoxesPerStrip'][index_])
+                for i in range(len(df)):
+     
+                    if df['Rem_Boxes'][i] != rem_boxes[i]:
+                        curr.append((rem_Strip_calc[i] - df['Rem_Strips'][i])*df['NumOfBoxesPerStrip'][i] + rem_boxes[i])
+                        rem_boxes[i] = 0
+                    else:
+                        curr.append((rem_Strip_calc[i] - df['Rem_Strips'][i])*df['NumOfBoxesPerStrip'][i])
+
+                        
+                    rem_Strip_calc[i] = df['Rem_Strips'][i]
+                    # num_placed[i] = (df['TotalNumStrips'][i]-df['Rem_Strips'][i])*df['NumOfBoxesPerStrip'][i] + df['Rem_Boxes'][i]
+                box_info.append(curr)
+                
+                packaging_density = math.trunc(packaging_density*100)
+                # print(packaging_density)
+                vol_occ_curr = round(vol_occ_curr, 3)
+                perc_wasted = round(perc_wasted, 3)
+                vol_container = round(vol_container*pow(10,-9), 3)
+
+                packd_list.append(packaging_density)
+                vol_curr_list.append(vol_occ_curr)
+                perc_wasted_list.append(perc_wasted)
+                vol_container_list.append(vol_container)
+                threed_boxes.append(box_coords)
+                container_list.append(container_inf)
+                df_storer.append(df.to_html(classes='data'))
+                index_ += 1
+                roll -= 1
+                img_paths.append(filename)
+
+            outer_index += 1
+
+        # print(img_paths)
+        
+        # container_count = len(total_containers)  # Number of containers
+        # print(df)
+        distinct_colors = df['Color'].tolist()
+        for i in range(len(df)):
+            sku_info.append([
+                df['BoxNumber'][i]+1,
+                df['Length'][i],
+                df['Width'][i],
+                df['Height'][i],
+                df['NumOfBoxesPerStrip'][i]
+            ])
+        # print(box_info)
+
+        df_ht= df.drop(['BoxNumber','TotalNumStrips','Rem_Boxes','Rem_Strips','Alpha(rotation about Z-axis)','GrossWeight','Marked','Color'],axis=1)
+        df_ht.index+=1
+        # print(df_ht)
+        df_ht = df_ht.to_html(classes='data')
+        container_indices = range(1,int(request.POST.get("sumContainers"))+1)
+
+        threed_data = []
+        # print("threed box",threed_boxes)
+        # print("containserlist",container_list)
+        base_dir = r'home\static\files'
+        # base_dir = BASE_DIR
+        for path in threed_boxes:
+            # print("path",path)
+            full_path = os.path.join(base_dir, os.path.basename(path))
+            try:
+                with open(full_path, 'r') as file:
+                    threed_data.append(json.load(file))
+            except FileNotFoundError:
+                return JsonResponse({"error": f"File not found: {full_path}"}, status=404)
+        containerList = []
+        for path in container_list:
+            full_path = os.path.join(base_dir, os.path.basename(path))
+            try:
+                with open(full_path, 'r') as file:
+                    containerList.append(json.load(file))
+            except FileNotFoundError:
+                return JsonResponse({"error": f"File not found: {full_path}"}, status=404)
+
+        context = {
+            'packaging_density': packd_list,
+            'vol_occ_curr': vol_curr_list,
+            'vol_container':vol_container_list,
+            'container_type' : container_type,
+            'container_indices' : list(container_indices),
+            'threed_paths': threed_data,
+            'container_inf' : containerList,
+            'num_skus': list(range(1, len(df) + 1)),
+            'colors' : distinct_colors,
+            'sku_info':[
+            [int(sku[0]), float(sku[1]), float(sku[2]), float(sku[3]), float(sku[4])] 
+            for sku in sku_info
+            ],
+            'box_info':[
+            [float(info) for info in box] 
+            for box in box_info
+            ],
+            'df':df_ht
+        }
+        # print(num_placed)
+        # return render(request, 'freeOutput.html', context)  # Redirect to a success page
+        return JsonResponse(context, safe=False)  # Redirect to a success page
+    # return render(request, 'freeOutput.html')
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
+
+
+

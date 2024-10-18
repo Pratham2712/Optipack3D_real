@@ -1,19 +1,23 @@
 from django.db import models
 from django.contrib.auth.hashers import make_password, check_password
 import random
+from django.utils import timezone
+from datetime import timedelta
 
 
-# class Container(models.Model):
-#     container_name= models.CharField(max_length=50)
-#     length = models.FloatField()
-#     width = models.FloatField()
-#     height = models.FloatField()
-#     max_weight = models.FloatField()
 
+class UserType(models.Model):
+    name = models.CharField(max_length=50, unique=True, primary_key=True)  # e.g., 'Loading team', 'Load planner', etc.
 
-#     def __str__(self):
-#         return self.container_name
+    def __str__(self):
+        return self.name
 
+class Dashboard(models.Model):
+    
+    name = models.CharField(max_length=100, unique=True,primary_key = True)  # e.g., 'CFR', 'One-time rate', etc.
+
+    def __str__(self):
+        return self.name
 
 
 class Company(models.Model):
@@ -47,11 +51,17 @@ class Company(models.Model):
     plan = models.CharField(max_length=1, choices=plan_choices)
     access_roles = models.CharField(max_length=1, choices=access_roles_choices)
     standard_container_type = models.CharField(max_length=20, choices=container_type_choices)
-    # choice_of_container = models.cha
     standard_source = models.CharField(max_length=100, choices=standard_source_choices)
     standard_destination = models.CharField(max_length=100,choices=standard_destination_choices)
-
+    user_count = models.PositiveIntegerField(default=0)
+    shipping_location = models.JSONField(default=list)  # List of shipping locations
+    destination_location = models.JSONField(default=list)  # List of destination locations
+    container_type = models.JSONField(default=list)
+    
     def save(self, *args, **kwargs):
+        if self.user_count > 100:
+            return JsonResponse({"ERROR": "Users limit exceeded"}, status=404)
+            raise ValidationError("user_count cannot exceed 2.")
         if not self.company_code:
             self.company_code = self.generate_unique_code()
         super(Company, self).save(*args, **kwargs)
@@ -65,9 +75,35 @@ class Company(models.Model):
     def __str__(self):
         return self.company_name
 
+class DashboardPermission(models.Model):
+    company = models.ForeignKey(
+        'Company', 
+        on_delete=models.CASCADE, 
+        to_field='company_name',  # Specify the field to match the VARCHAR(50) type
+        related_name='permissions'
+    )
+    user_type = models.ForeignKey(
+        'UserType', 
+        on_delete=models.CASCADE, 
+        to_field='name',  # Specify the field to match the VARCHAR(50) type
+        related_name='permissions'
+    )
+    dashboard = models.ForeignKey(
+        'Dashboard', 
+        on_delete=models.CASCADE, 
+        to_field='name',  # Specify the field to match the VARCHAR(50) type
+        related_name='permissions'
+    )
+    allowed = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('company', 'user_type', 'dashboard')  # Ensure unique permissions for each combo
+
+    def __str__(self):
+        return f"{self.user_type} - {self.dashboard} - {'Allowed' if self.allowed else 'Not Allowed'}"
 
 class SKU(models.Model):
-    sku_code = models.CharField(max_length=50, unique=True,primary_key=True)
+    sku_code = models.BigIntegerField(unique=True, primary_key=True)
     sku_name = models.CharField(max_length=50, unique=True)
     sku_description = models.TextField()
     type_choices=[
@@ -81,15 +117,17 @@ class SKU(models.Model):
     length = models.FloatField()
     width = models.FloatField()
     height = models.FloatField()
+    numberOfCases = models.FloatField(default=0)
+    tiltAllowed = models.BooleanField(default=False)
     #  What is product hierarchy
     product_hierarchy =models.TextField()
     incompatibility = models.CharField(max_length=100)
-    max_stack_height = models.IntegerField()  #number of boxes that can be accomodated , think about the default put it as the container heights
+    max_stack_height = models.IntegerField()
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, default="", related_name='SKU')
 
 
     def __str__(self):
-        return self.sku_code
-
+        return str(self.sku_code)
 
 class Users(models.Model):
     user_id = models.CharField(max_length=10, primary_key=True, default='000000')
@@ -103,13 +141,13 @@ class Users(models.Model):
         ('Company_SuperAdmin', 'Company_SuperAdmin'),
         ('Company_Admin', 'Company_Admin'),
         ('Company_loader', 'Company_loader'),
-        ('Company_planner', 'Company_planner')
+        ('Company_planner', 'Company_planner'),
+        ('None','None')
     ]
     status_choices=[
         ('Exp','expired'),
         ('Active','Active'),
         ('Dormant','Dormant')
-        # Others after discussing 
     ]
     user_type = models.CharField(max_length=20, choices=user_type_choices)
     user_first_name = models.CharField(max_length=100)
@@ -117,6 +155,7 @@ class Users(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='users', default='0000')
     user_status = models.CharField(max_length=100,choices= status_choices)
     last_login = models.DateTimeField(null=True, blank=True)
+    first_login = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_authenticated =models.BooleanField(default=False)
 
@@ -133,28 +172,31 @@ class Users(models.Model):
         return f"{self.user_id} - {self.email_id}"
 
 class Container(models.Model):
-    container_id = models.CharField(max_length=20,primary_key=True)  ## Put a unique random geenarator
+    container_id = models.CharField(max_length=20,primary_key=True, unique=True)  ## Put a unique random geenarator
     container_name = models.CharField(max_length=50)
-    container_volume = models.FloatField()
+    container_volume = models.FloatField(default=0)
     container_length = models.FloatField()
     container_width = models.FloatField()
     container_height = models.FloatField()
-    payload_capacity= models.FloatField()
+    payload_capacity= models.FloatField(default=0)
     container_type_choices = [
         ('A','A'),
         ('B','B')
     ]
-    container_type = models.CharField(max_length=100,choices= container_type_choices)
-    volume_capacity= models.FloatField()
+    container_type = models.CharField(max_length=100,default="",choices= container_type_choices)
+    volume_capacity= models.FloatField(default=0)
     seperator_pallet = models.BooleanField(default=False)
-    door_opening_width = models.FloatField()
-    door_opening_length=models.FloatField()
-    cubic_capacity = models.FloatField()
-    tare_weight =models.FloatField()
-    max_gross_weight =models.FloatField()
+    door_opening_width = models.FloatField(default=0)
+    door_opening_length=models.FloatField(default=0)
+    cubic_capacity = models.FloatField(default=0)
+    tare_weight =models.FloatField(default=0)
+    max_gross_weight =models.FloatField(default=0)
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, default="", related_name='containers')
+
 
     def __str__(self):
         return self.container_id
+
 
 class Order(models.Model):
     order_id = models.CharField(max_length=20, primary_key=True, unique=True)
@@ -165,12 +207,10 @@ class Order(models.Model):
     source_location = models.CharField(max_length=100)
     shipping_point = models.CharField(max_length=100)
     destination_location = models.CharField(max_length=100)
-    destination_point = models.CharField(max_length=100)
+    destination_point = models.CharField(max_length=100)    
     planned_start_date = models.DateField()
-    planned_delivery_date = models.DateField()
-
-
-
+    planned_delivery_date = models.DateField(null=True,blank=True)
+    order_number = models.IntegerField(default=0)
 
     def __str__(self):
         return self.order_id
@@ -178,7 +218,8 @@ class Order(models.Model):
 class OrderSKU(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     sku = models.ForeignKey(SKU, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=0)
+    quantity = models.PositiveIntegerField(default=1)
+    added_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f"{self.order.order_id} - {self.sku.sku_code}: {self.quantity}"
@@ -211,6 +252,24 @@ class LoadPlan(models.Model):
             }
             sku_details.append(detail)
         return sku_details
+
+class OTPRegistration(models.Model):
+    email_id = models.EmailField(max_length=255, unique=True)  # Store the user's email
+    otp = models.CharField(max_length=6)  # Store the OTP
+    isVerified = models.BooleanField(default=False)  # To check if the OTP is verified
+    otp_sent_time = models.DateTimeField(default=timezone.now)  # Time when OTP was sent
+    expired = models.BooleanField(default=False)  # To track if the OTP is expired
+
+    def save(self, *args, **kwargs):
+        # Automatically set expired flag if OTP is older than 15 minutes
+        if timezone.now() > self.otp_sent_time + timedelta(minutes=15):
+            self.expired = True
+        super(OTPRegistration, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.email_id} - OTP: {self.otp} - Verified: {self.isVerified} - Expired: {self.expired}"
+
+
 
 
 

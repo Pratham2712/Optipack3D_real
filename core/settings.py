@@ -29,6 +29,13 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'masterpalace12345@gmail.com'
+EMAIL_HOST_PASSWORD = 'vpal dkhr kpam fmle'
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -59,6 +66,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'home.middleware.JWTAuthenticationMiddleware'
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -86,6 +94,7 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 # for local machine 
+
 
 DATABASES = {
     "default": {
@@ -145,8 +154,8 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',  # Default backend
     'home.authentication.EmailBackend',  # Custom email-based backend
 ]
-CSRF_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_SAMESITE = 'Lax'
+# CSRF_COOKIE_SAMESITE = 'None'
+# SESSION_COOKIE_SAMESITE = 'NOne'
 CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_HTTPONLY = True
 CORS_ALLOWED_ORIGINS = [
@@ -190,6 +199,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_FROM_EMAIL = "masterpalace12345@gmail.com"
 
 
 LOGIN_URL = 'login'
