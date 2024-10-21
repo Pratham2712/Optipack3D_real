@@ -25,8 +25,12 @@ from django.utils import timezone
 import os
 import jwt
 from datetime import timedelta, datetime
-from core.settings import SECRET_KEY,DEFAULT_FROM_EMAIL,BASE_DIR, STATIC_URL
-
+from core.settings import SECRET_KEY,DEFAULT_FROM_EMAIL,BASE_DIR, STATIC_URL,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_STORAGE_BUCKET_NAME,AWS_S3_REGION_NAME,AWS_S3_CUSTOM_DOMAIN
+import boto3
+import uuid
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from botocore.exceptions import ClientError
 
 truck_specs = {
     "General Purpose container 20'": {
@@ -513,6 +517,7 @@ def freeOutputJson(request):
         total_containers = request.POST.get('totalContainers')
         # num_containers = int(request.POST.get('numContainers'))
         company_name = request.company
+        print("comapn------>",company_name)
 
         # Collect box details
         box_details = []
@@ -638,14 +643,14 @@ def freeOutputJson(request):
             company = ""
             container = ""
             if company_name:
-                company = Company.objects.filter(company_name=company_name).first()  # Assuming request.company gives the company name
+                company = Company.objects.filter(company_name=company_name).first() 
                 container = Container.objects.filter(container_name=keys, company=company).first()
             if company and container:
                 selected_truck_spec = {
-                    'length_container': container.container_length if container else None,
-                    'width_container': container.container_width if container else None,
-                    'height_container': container.container_height if container else None,
-                    'max_weight': container.max_gross_weight if container else None
+                    'length_container': int(container.container_length) if container else None,
+                    'width_container': int(container.container_width) if container else None,
+                    'height_container': int(container.container_height) if container else None,
+                    'max_weight': 32500 if container else 32500
                 }
             else:
                 selected_truck_spec = truck_specs.get(keys, {})
@@ -791,6 +796,7 @@ def check_email(request):
     if user_exists:
         return JsonResponse({"ERROR": "User already exist try login"}, status=400)
     return JsonResponse({"SUCCESS": "Email is not register"}, status=400)
+    
 
 
 def send_otp_to_email(request):
@@ -1785,6 +1791,67 @@ def get_skuCodeAndName(request):
         return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_planner can view SKUs"}, status=403)
 
     return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
+
+def upload_user_image(request):
+    if request.method == 'POST':
+        try:
+        #    data = json.loads(request.body)
+            user_id = request.POST.get("user_id")
+            if not user_id:
+                return JsonResponse({"ERROR": "User ID is required"}, status=400)
+            user = Users.objects.get(user_id=user_id)
+            if 'image_file' not in request.FILES:
+                return JsonResponse({"ERROR": "No image file provided"}, status=400)
+
+            image_file = request.FILES['image_file']
+            if not image_file:
+                return JsonResponse({"ERROR": "Image file is empty"}, status=400)
+
+            print("Image file name:", image_file.name)
+            print("Image file size:", image_file.size)
+            print("Image file content type:", image_file.content_type)
+            print("Image file type:", type(image_file))
+            file_extension = image_file.name.split('.')[-1]
+            unique_filename = f"{user_id}_{uuid.uuid4().hex}.{file_extension}" 
+            print(unique_filename)
+   
+            s3_client = boto3.client('s3',
+                aws_access_key_id=AWS_ACCESS_KEY_ID,
+                aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+                region_name=AWS_S3_REGION_NAME)
+            print(s3_client)
+            try:
+                print("Attempting to upload file to S3...",image_file.content_type)
+                s3_client.upload_fileobj(
+                    image_file,
+                    AWS_STORAGE_BUCKET_NAME,
+                    f"user_images/{unique_filename}",
+
+                    ExtraArgs={'ContentType': image_file.content_type}
+                )
+                print("File uploaded successfully to S3")
+            except ClientError as e:
+                print("ClientError:", str(e))
+                error_code = e.response['Error']['Code']
+                error_message = e.response['Error']['Message']
+                return JsonResponse({
+                    "ERROR": f"S3 upload failed. Error code: {error_code}, Message: {error_message}"
+                }, status=500)
+            except Exception as e:
+                print("Unexpected error during S3 upload:", str(e))
+                return JsonResponse({"ERROR": f"Unexpected error during S3 upload: {str(e)}"}, status=500)
+
+            s3_url = f"https://{AWS_S3_CUSTOM_DOMAIN}/user_images/{unique_filename}"
+            user.user_image.name = f"user_images/{unique_filename}"
+            user.user_image_url = s3_url
+            user.save()
+            return JsonResponse({"SUCCESS": {"message": "Image uploaded Successfully"}}, status=200)
+        except Users.DoesNotExist:
+            return JsonResponse({"ERROR": "User not found"}, status=404)
+        except Exception as e:
+            return JsonResponse({"ERROR": str(e)}, status=500)
+    return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
+
 
 def freeOutputJson2(request):
     if request.method == 'POST':
