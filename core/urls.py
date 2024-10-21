@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 from home.views import *
+from home.mobileView import *
 from django.conf import settings
 from django.contrib.auth import views as auth_views
 from django.conf.urls.static import static
@@ -69,6 +70,11 @@ urlpatterns = [
     path('attach_skus_to_order', attach_skus_to_order, name='attach_skus_to_order'),
     path('get_skus_by_order_numbers', get_skus_by_order_numbers, name='get_skus_by_order_numbers'),
     path('get_skuCodeAndName', get_skuCodeAndName, name='get_skuCodeAndName'),
+    path('upload_user_image', upload_user_image, name='upload_user_image'),
+    # mobile users (loaders)==============================================================================================
+    path('check_email_loaders', check_email_loaders, name='check_email_loaders'),
+    path('verify_loader', verify_loader, name='verify_loader'),
+
 
 ]
 

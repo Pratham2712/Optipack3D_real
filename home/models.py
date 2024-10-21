@@ -3,7 +3,7 @@ from django.contrib.auth.hashers import make_password, check_password
 import random
 from django.utils import timezone
 from datetime import timedelta
-
+from storages.backends.s3boto3 import S3Boto3Storage
 
 
 class UserType(models.Model):
@@ -129,6 +129,8 @@ class SKU(models.Model):
     def __str__(self):
         return str(self.sku_code)
 
+class CustomS3Storage(S3Boto3Storage):
+    location = 'user_images'
 class Users(models.Model):
     user_id = models.CharField(max_length=10, primary_key=True, default='000000')
     email_id = models.EmailField(max_length=254)
@@ -158,6 +160,8 @@ class Users(models.Model):
     first_login = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_authenticated =models.BooleanField(default=False)
+    user_image = models.FileField(storage=CustomS3Storage(), null=True, blank=True)
+    user_image_url = models.URLField(max_length=2000, null=True, blank=True)
 
     class Meta:
         unique_together = ('user_id', 'email_id')  # Ensures the combination of user_id and email_id is unique
@@ -167,6 +171,10 @@ class Users(models.Model):
 
     def check_password(self, raw_password):
         return check_password(raw_password, self.password)
+    def save(self, *args, **kwargs):
+        if self.user_image and not self.user_image_url:
+            self.user_image_url = f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{settings.AWS_STORAGE_BUCKET_NAME}/user_images/{self.user_image.name}"
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.user_id} - {self.email_id}"
