@@ -517,6 +517,7 @@ def freeOutputJson(request):
         total_containers = request.POST.get('totalContainers')
         # num_containers = int(request.POST.get('numContainers'))
         company_name = request.company
+        print("comapn------>",company_name)
 
         # Collect box details
         box_details = []
@@ -642,14 +643,14 @@ def freeOutputJson(request):
             company = ""
             container = ""
             if company_name:
-                company = Company.objects.filter(company_name=company_name).first()  # Assuming request.company gives the company name
+                company = Company.objects.filter(company_name=company_name).first() 
                 container = Container.objects.filter(container_name=keys, company=company).first()
             if company and container:
                 selected_truck_spec = {
-                    'length_container': container.container_length if container else None,
-                    'width_container': container.container_width if container else None,
-                    'height_container': container.container_height if container else None,
-                    'max_weight': container.max_gross_weight if container else None
+                    'length_container': int(container.container_length) if container else None,
+                    'width_container': int(container.container_width) if container else None,
+                    'height_container': int(container.container_height) if container else None,
+                    'max_weight': 32500 if container else 32500
                 }
             else:
                 selected_truck_spec = truck_specs.get(keys, {})
@@ -744,7 +745,6 @@ def freeOutputJson(request):
         for path in threed_boxes:
             full_path = os.path.join(base_dir, os.path.basename(path))
             try:
-                print(full_path)
                 with open(full_path, 'r') as file:
                     threed_data.append(json.load(file))
             except FileNotFoundError:
