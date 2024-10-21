@@ -744,6 +744,7 @@ def freeOutputJson(request):
         for path in threed_boxes:
             full_path = os.path.join(base_dir, os.path.basename(path))
             try:
+                print(full_path)
                 with open(full_path, 'r') as file:
                     threed_data.append(json.load(file))
             except FileNotFoundError:
@@ -789,6 +790,7 @@ def check_email(request):
     if user_exists:
         return JsonResponse({"ERROR": "User already exist try login"}, status=400)
     return JsonResponse({"SUCCESS": "Email is not register"}, status=400)
+    
 
 
 def send_otp_to_email(request):
