@@ -640,20 +640,20 @@ def freeOutputJson(request):
 
 
         for keys, values in container_data.items():
-            # company = ""
-            # container = ""
-            # if company_name:
-            #     company = Company.objects.filter(company_name=company_name).first() 
-            #     container = Container.objects.filter(container_name=keys, company=company).first()
-            # if company and container:
-            #     selected_truck_spec = {
-            #         'length_container': int(container.container_length) if container else None,
-            #         'width_container': int(container.container_width) if container else None,
-            #         'height_container': int(container.container_height) if container else None,
-            #         'max_weight': int(32500) if container else int(32500)
-            #     }
-            # else:
-            selected_truck_spec = truck_specs.get(keys, {})
+            company = ""
+            container = ""
+            if company_name:
+                company = Company.objects.filter(company_name=company_name).first() 
+                container = Container.objects.filter(container_name=keys, company=company).first()
+            if company and container:
+                selected_truck_spec = {
+                    'length_container': int(container.container_length) if container else None,
+                    'width_container': int(container.container_width) if container else None,
+                    'height_container': int(container.container_height) if container else None,
+                    'max_weight': int(32500) if container else int(32500)
+                }
+            else:
+                selected_truck_spec = truck_specs.get(keys, {})
 
             if outer_index == 0:
                 df, container_toFit, strip_list = DataProcess(df, selected_truck_spec, 1, 1, data)
@@ -742,7 +742,7 @@ def freeOutputJson(request):
         threed_data = []
         # base_dir = r'home\static\files'
         # base_dir = BASE_DIR
-        base_dir = "/home/ec2-user/Optipack3D_real/static/"
+        base_dir = "/home/ec2-user/Optipack3D_real/home/static/"
         print("**************BASE DIR ************ -> ", BASE_DIR)
         print("**************STATIC_URL ************ -> ", STATIC_URL)
 
