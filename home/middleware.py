@@ -34,6 +34,9 @@ class JWTAuthenticationMiddleware:
             "/attach_skus_to_order",
             "/get_skus_by_order_numbers",
             "/get_skuCodeAndName",
+            "/create_load_plan",
+            "/get_loaderUser",
+            "/assign_load_plan",
         ]
         bypass_paths = [
             '/send_otp_to_email',
@@ -61,7 +64,7 @@ class JWTAuthenticationMiddleware:
                 except jwt.DecodeError:
                     return JsonResponse({"ERROR": "Invalid token"}, status=401)
             else:
-                return JsonResponse({"ERROR": "Token required"}, status=401)
+                return JsonResponse({"ERROR": "Login sessioin has expired. Login again"}, status=401)
         if any(request.path.startswith(path) for path in bypass_paths):
             token = request.COOKIES.get('jwt_token')
             if token:

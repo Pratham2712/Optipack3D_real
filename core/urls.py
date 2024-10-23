@@ -27,7 +27,6 @@ urlpatterns = [
     path('', home, name="home"),
     path('freeOutput', freeOutput, name='freeOutput'),
     path('freeOutputJson', freeOutputJson, name='freeOutputJson'),
-    path('freeOutputJson2', freeOutputJson2, name='freeOutputJson2'),
     path('freeTrial/', freeTrial, name='freeTrial'),
     path('join/', joinCreateOrganisation, name='joinCreateOrganisation'),  # Updated name for join/create organisation
     path('login/', login_view, name='login'),  # Use distinct view function for login
@@ -71,6 +70,9 @@ urlpatterns = [
     path('get_skus_by_order_numbers', get_skus_by_order_numbers, name='get_skus_by_order_numbers'),
     path('get_skuCodeAndName', get_skuCodeAndName, name='get_skuCodeAndName'),
     path('upload_user_image', upload_user_image, name='upload_user_image'),
+    path('create_load_plan', create_load_plan, name='create_load_plan'),
+    path('get_loaderUser', get_loaderUser, name='get_loaderUser'),
+    path('assign_load_plan', assign_load_plan, name='assign_load_plan'),
     # mobile users (loaders)==============================================================================================
     path('check_email_loaders', check_email_loaders, name='check_email_loaders'),
     path('verify_loader', verify_loader, name='verify_loader'),

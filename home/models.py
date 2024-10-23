@@ -4,6 +4,8 @@ import random
 from django.utils import timezone
 from datetime import timedelta
 from storages.backends.s3boto3 import S3Boto3Storage
+import json
+import uuid
 
 
 class UserType(models.Model):
@@ -101,38 +103,10 @@ class DashboardPermission(models.Model):
 
     def __str__(self):
         return f"{self.user_type} - {self.dashboard} - {'Allowed' if self.allowed else 'Not Allowed'}"
-
-class SKU(models.Model):
-    sku_code = models.BigIntegerField(unique=True, primary_key=True)
-    sku_name = models.CharField(max_length=50, unique=True)
-    sku_description = models.TextField()
-    type_choices=[
-        ('A','A'),
-        ('B','B')
-    ]
-    sku_type = models.CharField(max_length=1,choices=type_choices)
-    gross_weight = models.FloatField()
-    net_weight = models.FloatField()
-    volume = models.FloatField()
-    length = models.FloatField()
-    width = models.FloatField()
-    height = models.FloatField()
-    numberOfCases = models.FloatField(default=0)
-    tiltAllowed = models.BooleanField(default=False)
-    #  What is product hierarchy
-    product_hierarchy =models.TextField()
-    incompatibility = models.CharField(max_length=100)
-    max_stack_height = models.IntegerField()
-    company = models.ForeignKey('Company', on_delete=models.CASCADE, default="", related_name='SKU')
-
-
-    def __str__(self):
-        return str(self.sku_code)
-
 class CustomS3Storage(S3Boto3Storage):
     location = 'user_images'
 class Users(models.Model):
-    user_id = models.CharField(max_length=10, primary_key=True, default='000000')
+    user_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email_id = models.EmailField(max_length=254)
     password = models.CharField(max_length=128)  # Field to store hashed passwords
 
@@ -178,6 +152,33 @@ class Users(models.Model):
 
     def __str__(self):
         return f"{self.user_id} - {self.email_id}"
+class SKU(models.Model):
+    sku_code = models.BigIntegerField(primary_key=True)
+    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='SKU',null=True)
+    sku_name = models.CharField(max_length=50)
+    sku_description = models.TextField()
+    type_choices=[
+        ('A','A'),
+        ('B','B')
+    ]
+    sku_type = models.CharField(max_length=1,choices=type_choices)
+    gross_weight = models.FloatField()
+    net_weight = models.FloatField()
+    volume = models.FloatField()
+    length = models.FloatField()
+    width = models.FloatField()
+    height = models.FloatField()
+    numberOfCases = models.FloatField(default=0)
+    tiltAllowed = models.BooleanField(default=False)
+    #  What is product hierarchy
+    product_hierarchy =models.TextField()
+    incompatibility = models.CharField(max_length=100)
+    max_stack_height = models.IntegerField()
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, default="", related_name='SKU')
+
+
+    def __str__(self):
+        return str(self.sku_code)
 
 class Container(models.Model):
     container_id = models.CharField(max_length=20,primary_key=True, unique=True)  ## Put a unique random geenarator
@@ -208,8 +209,9 @@ class Container(models.Model):
 
 class Order(models.Model):
     order_id = models.CharField(max_length=20, primary_key=True, unique=True)
+    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='orders',null=True)
     skus = models.ManyToManyField(SKU, through='OrderSKU', related_name='orders')
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='orders')
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='orders',null=True)
     container = models.ManyToManyField(Container, related_name='orders')
     product_hierarchy = models.CharField(max_length=100)
     source_location = models.CharField(max_length=100)
@@ -228,13 +230,16 @@ class OrderSKU(models.Model):
     sku = models.ForeignKey(SKU, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
     added_at = models.DateTimeField(default=timezone.now)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='ordersku',null=True)
+    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='ordersku',null=True)
 
     def __str__(self):
         return f"{self.order.order_id} - {self.sku.sku_code}: {self.quantity}"
 
 class LoadPlan(models.Model):
-    plan_id = models.CharField(max_length=20, primary_key=True)
-    order_id = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='load_plan')
+    plan_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False) 
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='load_plan',default="0000")
+    order_numbers = models.JSONField(default=list)
     user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='load_plan')
     utilization = models.FloatField()
     volume_untilized = models.FloatField()
@@ -249,18 +254,30 @@ class LoadPlan(models.Model):
 
     def __str__(self):
         return self.plan_id
-    
-    def get_sku_details(self):
-        sku_details = []
-        for order_sku in self.orderSKU.all():
-            detail = {
-                "order_id": order_sku.order.order_id,
-                "sku_code": order_sku.sku.sku_code,
-                "quantity": order_sku.quantity
-            }
-            sku_details.append(detail)
-        return sku_details
+class LoadPlanContainer(models.Model):
+    load_plan = models.ForeignKey(LoadPlan, on_delete=models.CASCADE)
+    container = models.ForeignKey(Container, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE,default="0000")
+    quantity = models.PositiveIntegerField(default=1)
 
+    class Meta:
+        unique_together = ('load_plan', 'container', 'company')
+
+    def __str__(self):
+        return f"{self.load_plan.plan_id} - {self.company.company_name} - {self.container.container_name}: {self.quantity}"
+
+class LoadPlanAssignment(models.Model):
+    load_plan = models.ForeignKey(LoadPlan, on_delete=models.CASCADE, related_name='assignments')
+    assigned_user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='assigned_load_plans')
+    assignee = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='load_plan_assignments_made')
+    assigned_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('load_plan', 'assigned_user')
+
+    def __str__(self):
+        return f"LoadPlan {self.load_plan.plan_id} assigned to {self.assigned_user.email_id} by {self.assignee.email_id}"
+        
 class OTPRegistration(models.Model):
     email_id = models.EmailField(max_length=255, unique=True)  # Store the user's email
     otp = models.CharField(max_length=6)  # Store the OTP
