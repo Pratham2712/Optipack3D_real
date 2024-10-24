@@ -76,7 +76,10 @@ urlpatterns = [
     # mobile users (loaders)==============================================================================================
     path('check_email_loaders', check_email_loaders, name='check_email_loaders'),
     path('verify_loader', verify_loader, name='verify_loader'),
-
+    path('get_loadplan_loaders', get_loadplan_loaders, name='get_loadplan_loaders'),
+    path('check_login_loader', check_login_loader, name='check_login_loader'),
+    path('get_order_details', get_order_details, name='get_order_details'),
+    
 
 ]
 
