@@ -160,7 +160,6 @@ def get_order_details(request):
                     return JsonResponse({"ERROR": "Load plan not found for this company"}, status=404)
 
                 order_numbers = load_plan.order_numbers
-                print(order_numbers)
 
                 orders = Order.objects.filter(order_number__in=order_numbers, company=load_plan.company)
 
@@ -174,16 +173,18 @@ def get_order_details(request):
 
                     skus_data = []
                     for order_sku in order_skus:
+                        sku = order_sku.sku
                         skus_data.append({
-                            "sku_code": order_sku.sku.sku_code,
-                            "sku_name": order_sku.sku.sku_name,
+                            "sku_code": sku.sku_code,
+                            "sku_name": sku.sku_name,
                             "quantity": order_sku.quantity,
-                            "gross_weight": order_sku.sku.gross_weight,
-                            "length": order_sku.sku.length,
-                            "width": order_sku.sku.width,
-                            "height": order_sku.sku.height,
-                            "volume": order_sku.sku.volume,
-                            "tilt_allowed": order_sku.sku.tiltAllowed,
+                            "gross_weight": sku.gross_weight,
+                            "volume": sku.volume,
+                            "netWeight": sku.net_weight,
+                            "length": sku.length,
+                            "width": sku.width,
+                            "height": sku.height,
+                            "rotationAllowed": sku.tiltAllowed,
                         })
 
                     # Assign the list of SKU data to the corresponding order_id in the result
@@ -197,7 +198,42 @@ def get_order_details(request):
                 }, status=200)
 
             except Exception as e:
+                return JsonResponse({"ERROR": str(e)}, status=500)
+        return JsonResponse({"ERROR": "Unauthorized access, Loader user can assign loadplan"}, status=403)
+    return JsonResponse({"ERROR": "Invalid request method"}, status=405)
+
+def get_container_details(request):
+    if request.method == "POST":
+        if hasattr(request,'userType') and request.userType == "Company_loader":
+            try:
+                data = json.loads(request.body)
+                plan_id = data.get("plan_id")
+                company_name = request.company
+                if not plan_id:
+                    return JsonResponse({"ERROR": "Load plan is unavailable"}, status=400)
+
+                containers = LoadPlanContainer.objects.filter(
+                    load_plan__plan_id=plan_id,
+                    company__company_name=company_name
+                )
+                print("containers",containers)
+                # Check if containers exist for the specified load plan and company
+                if not containers.exists():
+                    return JsonResponse({"ERROR": "No containers found for the given load plan and company"}, status=404)
+
+                # Prepare response dictionary with container names and quantities
+                result = {}
+                for container_record in containers:
+                    print("inside",container_record.quantity)
+                    print("inside",container_record.container.container_name)
+                    container_name = container_record.container.container_name  # Assuming container has a `container_name` field
+                    quantity = container_record.quantity
+                    result[container_name] = quantity
+                return JsonResponse({"SUCCESS":{'message':"Container fetch Successfully","result":result}})
+            except Exception as e:
                 print(str(e))
                 return JsonResponse({"ERROR": str(e)}, status=500)
         return JsonResponse({"ERROR": "Unauthorized access, Loader user can assign loadplan"}, status=403)
     return JsonResponse({"ERROR": "Invalid request method"}, status=405)
+
+        
