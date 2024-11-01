@@ -39,6 +39,9 @@ class JWTAuthenticationMiddleware:
             "/check_login_loader",
             "/get_order_details",
             "/get_container_details",
+            "/get_order_data",
+            "/add_defaultSetting",
+            "/get_defaultSetting",
         ]
         bypass_paths = [
             '/send_otp_to_email',

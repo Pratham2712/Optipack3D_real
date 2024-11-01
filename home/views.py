@@ -782,7 +782,7 @@ def freeOutputJson(request):
         # return render(request, 'freeOutput.html', context)  # Redirect to a success page
         return JsonResponse(context, safe=False)  # Redirect to a success page
     # return render(request, 'freeOutput.html')
-    return JsonResponse({"error": "Invalid request"}, status=400)
+    return JsonResponse({"ERROR": "Invalid request"}, status=400)
 
 def check_email(request):
     email_id = request.POST.get('email')
@@ -821,7 +821,7 @@ def send_otp_to_email(request):
     message = f'Your OTP code is {otp}. It is valid for 15 minutes.'
     email_from = DEFAULT_FROM_EMAIL
     recipient_list = [email_id]
-    
+    print("email",email_from)
     try:
         send_mail(subject, message, email_from, recipient_list)
         return JsonResponse({"SUCCESS": "OTP send successfully","sendTime":f"{otp_entry.otp_sent_time}"}, status=200)
@@ -893,7 +893,8 @@ def verify_otp(request):
                 'email': email_id,
                 'userType': user.user_type,
                 "message" : "OTP verified successfully",
-                "company" : user.company_id
+                "company" : user.company_id,
+                "lastLogin":user.last_login
             }}, status=200)
         response.set_cookie(
             'jwt_token',  
@@ -962,7 +963,8 @@ def verify_login(request):
                 'email': email_id,
                 'userType': user_exists.user_type,
                 "message" : "OTP verified successfully",
-                "company" : user_exists.company_id
+                "company" : user_exists.company_id,
+                "lastLogin": user_exists.last_login
             }}, status=200)
             response.set_cookie(
                 'jwt_token',  
@@ -1120,6 +1122,67 @@ def add_loadplan(request):
     else:
         return JsonResponse({'ERROR': 'Invalid request method. Only POST requests are allowed.'}, status=405)
 
+def add_defaultSetting(request):
+    if request.method == 'POST':
+        if hasattr(request, 'userType') and request.userType == "Company_Admin":
+            company_name = request.company  
+            try:
+                company = Company.objects.get(company_name=company_name)
+                data = json.loads(request.body)
+
+                standard_container_type = data.get("standard_container_type")
+                standard_source = data.get("standard_source")
+                standard_destination = data.get("standard_destination")
+                standard_utilization = data.get("standard_utilization")
+                standard_delivery_horizon = data.get("standard_delivery_horizon")
+
+                company.standard_container_type = standard_container_type
+                company.standard_source = standard_source
+                company.standard_destination = standard_destination
+                company.standard_utilization = standard_utilization
+                company.standard_delivery_horizon = standard_delivery_horizon
+
+                company.save()
+
+                return JsonResponse({"SUCCESS": {"message":"Default settings added successfully"}}, status=200)
+                
+            except Company.DoesNotExist:
+                return JsonResponse({"ERROR": "Company not found"}, status=404)
+            except Exception as e:
+                return JsonResponse({"ERROR": str(e)}, status=500)
+        else:
+            return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin can add this data'}, status=403)
+    else:
+        return JsonResponse({'ERROR': 'Invalid request method. Only POST requests are allowed.'}, status=405)
+
+def get_defaultSetting(request):
+    if request.method == 'GET':
+        if hasattr(request, 'userType') and request.userType == "Company_Admin":
+            company_name = request.company
+            try:
+                # Retrieve the company object
+                company = Company.objects.get(company_name=company_name)
+
+                # Prepare data in the desired format
+                data = {
+                    "standard_container_type": company.standard_container_type,
+                    "standard_source": company.standard_source,
+                    "standard_destination": company.standard_destination,
+                    "standard_utilization": company.standard_utilization,
+                    "standard_delivery_horizon": company.standard_delivery_horizon
+                }
+
+                return JsonResponse({"SUCCESS": {"message": "Settings retrieved successfully", "result": data}}, status=200)
+            
+            except Company.DoesNotExist:
+                return JsonResponse({"ERROR": "Company not found"}, status=404)
+            except Exception as e:
+                return JsonResponse({"ERROR": str(e)}, status=500)
+        
+        return JsonResponse({'ERROR': 'Unauthorized access, only Company_Admin can access this data'}, status=403)
+    
+    return JsonResponse({'ERROR': 'Invalid request method'}, status=405)
+        
 def get_loadplan(request):
     if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_loader"]:
         company_name = request.company
@@ -1561,6 +1624,33 @@ def add_or_edit_order(request):
         return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_planner can add or edit orders"}, status=403)
     
     return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
+
+def get_order_data(request):
+    if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_planner"]:
+        company_name = request.company
+        try:
+            orders = Order.objects.filter(company__company_name=company_name)
+            if not orders.exists():
+                return JsonResponse({"ERROR": "No orders found for the specified company"}, status=404)
+            order_data = []
+            for order in orders:
+                order_data.append({
+                    "order_id": order.order_id,
+                    "source_location": order.source_location,
+                    "destination_location": order.destination_location,
+                    "planned_start_date": order.planned_start_date,
+                    "order_number": order.order_number,
+                })
+            return JsonResponse({
+                "SUCCESS": {
+                    "message": "Order data fetched successfully",
+                    "result": order_data
+                }
+            }, status=200)
+
+        except Exception as e:
+            return JsonResponse({"ERROR": str(e)}, status=500)
+    return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_planner can add or edit orders"}, status=403)   
 
 
 def get_skuByCode(request):

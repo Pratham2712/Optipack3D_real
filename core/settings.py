@@ -32,11 +32,16 @@ ALLOWED_HOSTS = ['*']
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_USE_TLS = True
+# EMAIL_PORT = 587
+# EMAIL_HOST_USER = "masterpalace12345@gmail.com"
+# EMAIL_HOST_PASSWORD = 'vpal dkhr kpam fmle'
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'masterpalace12345@gmail.com'
-EMAIL_HOST_PASSWORD = 'vpal dkhr kpam fmle'
+EMAIL_PORT = 587
+EMAIL_HOST_PASSWORD = 'Vileparle123'
+EMAIL_HOST = 'smtp.office365.com'
+EMAIL_HOST_USER = "Shahrukh@optipack3d.com"
 
 # Application definition
 
@@ -219,7 +224,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-DEFAULT_FROM_EMAIL = "masterpalace12345@gmail.com"
+DEFAULT_FROM_EMAIL = "Shahrukh@optipack3d.com"
 
 
 LOGIN_URL = 'login'

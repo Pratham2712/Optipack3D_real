@@ -73,6 +73,9 @@ urlpatterns = [
     path('create_load_plan', create_load_plan, name='create_load_plan'),
     path('get_loaderUser', get_loaderUser, name='get_loaderUser'),
     path('assign_load_plan', assign_load_plan, name='assign_load_plan'),
+    path('get_order_data', get_order_data, name='get_order_data'),
+    path('add_defaultSetting', add_defaultSetting, name='add_defaultSetting'),
+    path('get_defaultSetting', get_defaultSetting, name='get_defaultSetting'),
     # mobile users (loaders)==============================================================================================
     path('check_email_loaders', check_email_loaders, name='check_email_loaders'),
     path('verify_loader', verify_loader, name='verify_loader'),
