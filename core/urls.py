@@ -46,6 +46,7 @@ urlpatterns = [
     path('verify_login', verify_login, name='verify_login'),
     path('check_email', check_email, name='check_email'),
     path('check_login', check_login, name='check_login'),
+    path('logout_user', logout_user, name='logout_user'),
     # admin route ===================================================================================================
     path('add_permission', add_permission, name='add_permission'),
     path('get_permissions', get_permissions, name='get_permissions'),

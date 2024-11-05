@@ -982,6 +982,24 @@ def verify_login(request):
     except OTPRegistration.DoesNotExist:
         return JsonResponse({"ERROR": "No OTP found for this email"}, status=404)
 
+def logout_user(request):
+    if request.method == 'POST':
+        token = request.token
+        if token:
+            token = token.split(' ')[1] if ' ' in token else token
+            response = JsonResponse({"SUCCESS": {"message":"Logged out successfully"}}, status=200)
+            response.set_cookie(
+                'jwt_token',  
+                '',        
+                max_age=0, 
+                httponly=True, 
+                secure=True,  
+                samesite='None' 
+            )
+            return response
+        return JsonResponse({"ERROR": "Token not provided"}, status=400)
+    return JsonResponse({"ERROR": "Invalid request method"}, status=405)
+
 def check_login(request):
     if hasattr(request, 'user_email'):
         return JsonResponse({'SUCCESS': {
