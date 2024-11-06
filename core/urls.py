@@ -46,6 +46,7 @@ urlpatterns = [
     path('verify_login', verify_login, name='verify_login'),
     path('check_email', check_email, name='check_email'),
     path('check_login', check_login, name='check_login'),
+    path('logout_user', logout_user, name='logout_user'),
     # admin route ===================================================================================================
     path('add_permission', add_permission, name='add_permission'),
     path('get_permissions', get_permissions, name='get_permissions'),
@@ -73,6 +74,9 @@ urlpatterns = [
     path('create_load_plan', create_load_plan, name='create_load_plan'),
     path('get_loaderUser', get_loaderUser, name='get_loaderUser'),
     path('assign_load_plan', assign_load_plan, name='assign_load_plan'),
+    path('get_order_data', get_order_data, name='get_order_data'),
+    path('add_defaultSetting', add_defaultSetting, name='add_defaultSetting'),
+    path('get_defaultSetting', get_defaultSetting, name='get_defaultSetting'),
     # mobile users (loaders)==============================================================================================
     path('check_email_loaders', check_email_loaders, name='check_email_loaders'),
     path('verify_loader', verify_loader, name='verify_loader'),

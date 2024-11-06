@@ -39,6 +39,10 @@ class JWTAuthenticationMiddleware:
             "/check_login_loader",
             "/get_order_details",
             "/get_container_details",
+            "/get_order_data",
+            "/add_defaultSetting",
+            "/get_defaultSetting",
+            "/logout_user",
         ]
         bypass_paths = [
             '/send_otp_to_email',
@@ -67,6 +71,7 @@ class JWTAuthenticationMiddleware:
                     request.user_email = payload.get('email')
                     request.userType = payload.get('userType')
                     request.company = payload.get("company")
+                    request.token = token
                     print(payload)
 
                 except jwt.ExpiredSignatureError:
