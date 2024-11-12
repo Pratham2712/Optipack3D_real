@@ -30,7 +30,7 @@ urlpatterns = [
     path('freeTrial/', freeTrial, name='freeTrial'),
     path('join/', joinCreateOrganisation, name='joinCreateOrganisation'),  # Updated name for join/create organisation
     path('login/', login_view, name='login'),  # Use distinct view function for login
-    path('loginJson', login_viewJson, name='loginJson'),  # Use distinct view function for login
+    path('login_viewJson', login_viewJson, name='login_viewJson'),  # Use distinct view function for login
     path('admin/', admin.site.urls),
     path('dashboard/', dashboard, name='dashboard'),
     path('profile/', profile, name='profile'),
@@ -47,6 +47,7 @@ urlpatterns = [
     path('check_email', check_email, name='check_email'),
     path('check_login', check_login, name='check_login'),
     path('logout_user', logout_user, name='logout_user'),
+    path('set_password', set_password, name='set_password'),
     # admin route ===================================================================================================
     path('add_permission', add_permission, name='add_permission'),
     path('get_permissions', get_permissions, name='get_permissions'),
