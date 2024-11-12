@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.hashers import make_password
 from home.models import *
 from django.contrib import messages
 from django.db import IntegrityError
@@ -212,20 +213,45 @@ def login_view(request):
     return render(request, 'login.html')  # Render the login template in case of GET request or errors
 def login_viewJson(request):
     if request.method == "POST":
+        if hasattr(request, 'user_email'):
+            return JsonResponse({'ERROR': f'Already logged in as {request.user_email}!'})
         email = request.POST.get('email')
         password = request.POST.get('password')
-
+        company = request.POST.get("company_name")
         if not email or not password:
             messages.error(request, "Email and password are required.")
             return JsonResponse({"ERROR": "Email and password are required."}, status=400)
+        user_exists = Users.objects.filter(email_id=email).first()
+        if not user_exists:
+            return JsonResponse({"ERROR": "User not registered"}, status=400)
+        if user_exists.is_password == False:
+            return JsonResponse({"ERROR": "Password is not set. Set password or try OTP login."}, status=400)
 
-        user = authenticate(request, username=email, password=password)
-        if user is not None:
-            login(request, user)
-            user.is_authenticated= True
-            user.save()
+        if check_password(password, user_exists.password):
+            user_exists.is_authenticated= True
+            user_exists.last_login = timezone.now()
+            user_exists.user_status = "Active"
+            user_exists.save()
+            token = generate_jwt_token(email,user_exists.user_type,company)
             # next_url = request.GET.get('next', 'dashboard')  # Default to 'dashboard' if 'next' is not provided
-            return JsonResponse({"SUCCESS": "Signup successfully"}, status=200)
+            response = JsonResponse({"SUCCESS": {
+                "user_id": user_exists.user_id,
+                "isPassword": user_exists.is_password,
+                'email': email,
+                'userType': user_exists.user_type,
+                "message" : "Login successfully",
+                "company" : user_exists.company_id,
+                "lastLogin": user_exists.last_login
+            }}, status=200)
+            response.set_cookie(
+                'jwt_token',  
+                token,        
+                max_age=18000, 
+                httponly=True, 
+                secure=True,  
+                samesite='None' 
+            )
+            return response
         else:
             return JsonResponse({"ERROR": "Authentication failed. Please try logging in again."}, status=400)
 
@@ -870,8 +896,19 @@ def verify_otp(request):
         company, created = Company.objects.get_or_create(company_name=companyname)
     
         if created and not company.company_code:
-            company.company_code = company.generate_unique_code()
+            company.company_code = uuid.uuid4()
             company.save()
+        for container_name, specs in truck_specs.items():
+            Container.objects.create(
+                container_id=uuid.uuid4(),
+                container_name=container_name,
+                container_length=specs["length_container"],
+                container_width=specs["width_container"],
+                container_height=specs["height_container"],
+                max_gross_weight=specs["max_weight"],
+                container_volume=specs.get("container_volume", 0),
+                company=company
+            )
         # Determine user type based on user count
         if company.user_count == 0:
             user_type = "Company_Admin"
@@ -896,6 +933,8 @@ def verify_otp(request):
         token = generate_jwt_token(email_id,user.user_type,companyname)
         print(token)
         response = JsonResponse({"SUCCESS": {
+                "user_id": user.user_id,
+                "isPassword": user.is_password,
                 'email': email_id,
                 'userType': user.user_type,
                 "message" : "OTP verified successfully",
@@ -966,6 +1005,8 @@ def verify_login(request):
             user_exists.save()
             token = generate_jwt_token(email_id,user_exists.user_type,company)
             response = JsonResponse({"SUCCESS": {
+                "user_id": user_exists.user_id,
+                "isPassword": user_exists.is_password,
                 'email': email_id,
                 'userType': user_exists.user_type,
                 "message" : "OTP verified successfully",
@@ -1008,14 +1049,37 @@ def logout_user(request):
 
 def check_login(request):
     if hasattr(request, 'user_email'):
-        return JsonResponse({'SUCCESS': {
-                'email': request.user_email,
-                'userType': request.userType,
-                'company' : request.company,
-                "message" : "User is login"
-            }})
+        user = Users.objects.get(email_id=request.user_email)
+            
+        return JsonResponse({
+            'SUCCESS': {
+                "user_id": user.user_id,
+                "isPassword": user.is_password,
+                'email': user.email_id,
+                'userType': user.user_type,
+                'company': user.company.company_name if user.company else None,
+                'message': "User is logged in"
+            }
+        })
     else:
         return JsonResponse({'Error': 'Unauthorized access, please log in'}, status=401)
+def set_password(request):
+    if request.method == 'POST':
+        user_id = request.POST.get('userId')
+        password = request.POST.get('password')
+        if not user_id or not password:
+            return JsonResponse({"ERROR": "Missing userId or password"}, status=400)
+        try: 
+            user = Users.objects.get(user_id=user_id)
+            user.password = make_password(password)
+            user.is_password = True
+            user.save()
+
+            return JsonResponse({"SUCCESS": {"message":"Password set successfully"}}, status=200)
+        
+        except Users.DoesNotExist:
+            return JsonResponse({"ERROR": "User not found"}, status=404)
+    return JsonResponse({"ERROR": "Invalid request method"}, status=405)
 
 def add_permission(request):
     if request.method == 'POST':
@@ -1246,7 +1310,7 @@ def add_container(request):
                 
                 # Create a new container entry
                 new_container = Container(
-                    container_id=company.generate_unique_code(),
+                    container_id=uuid.uuid4(),
                     container_name=container_name,
                     container_height=container_height,
                     container_width=container_width,
