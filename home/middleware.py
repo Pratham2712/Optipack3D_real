@@ -43,11 +43,13 @@ class JWTAuthenticationMiddleware:
             "/add_defaultSetting",
             "/get_defaultSetting",
             "/logout_user",
+            "/set_password",
         ]
         bypass_paths = [
             '/send_otp_to_email',
             '/verify_otp',
             '/verify_login',
+            '/login_viewJson',
             "/freeOutputJson",
             "/verify_loader",
             # "/upload_user_image",

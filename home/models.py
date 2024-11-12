@@ -23,8 +23,8 @@ class Dashboard(models.Model):
 
 
 class Company(models.Model):
-    company_name = models.CharField(max_length=50, primary_key=True)
-    company_code = models.CharField(max_length=10, unique=True)
+    company_name = models.CharField(max_length=50, primary_key=True, unique=True) 
+    company_code = models.UUIDField(default=uuid.uuid4, editable=False)
 
     plan_choices = [
         ('A', 'PlanA'),
@@ -110,7 +110,8 @@ class CustomS3Storage(S3Boto3Storage):
 class Users(models.Model):
     user_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email_id = models.EmailField(max_length=254)
-    password = models.CharField(max_length=128)  # Field to store hashed passwords
+    password = models.CharField(max_length=128)
+    is_password = models.BooleanField(default=False)
 
     user_type_choices = [
         ('SuperAdmin', 'SuperAdmin'),
@@ -183,7 +184,7 @@ class SKU(models.Model):
         return str(self.sku_code)
 
 class Container(models.Model):
-    container_id = models.CharField(max_length=20,primary_key=True, unique=True)  ## Put a unique random geenarator
+    container_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  ## Put a unique random geenarator
     container_name = models.CharField(max_length=50)
     container_volume = models.FloatField(default=0)
     container_length = models.FloatField()
