@@ -939,7 +939,8 @@ def verify_otp(request):
                 'userType': user.user_type,
                 "message" : "OTP verified successfully",
                 "company" : user.company_id,
-                "lastLogin":user.last_login
+                "lastLogin":user.last_login,
+                'image_url': user.user_image_url,
             }}, status=200)
         response.set_cookie(
             'jwt_token',  
@@ -1011,7 +1012,8 @@ def verify_login(request):
                 'userType': user_exists.user_type,
                 "message" : "OTP verified successfully",
                 "company" : user_exists.company_id,
-                "lastLogin": user_exists.last_login
+                "lastLogin": user_exists.last_login,
+                'image_url': user_exists.user_image_url,
             }}, status=200)
             response.set_cookie(
                 'jwt_token',  
@@ -1058,7 +1060,9 @@ def check_login(request):
                 'email': user.email_id,
                 'userType': user.user_type,
                 'company': user.company.company_name if user.company else None,
-                'message': "User is logged in"
+                'message': "User is logged in",
+                'image_url': user.user_image_url,
+                "lastLogin": user.last_login
             }
         })
     else:
@@ -1999,7 +2003,6 @@ def get_skuCodeAndName(request):
 def upload_user_image(request):
     if request.method == 'POST':
         try:
-        #    data = json.loads(request.body)
             user_id = request.POST.get("user_id")
             if not user_id:
                 return JsonResponse({"ERROR": "User ID is required"}, status=400)
@@ -2011,10 +2014,6 @@ def upload_user_image(request):
             if not image_file:
                 return JsonResponse({"ERROR": "Image file is empty"}, status=400)
 
-            print("Image file name:", image_file.name)
-            print("Image file size:", image_file.size)
-            print("Image file content type:", image_file.content_type)
-            print("Image file type:", type(image_file))
             file_extension = image_file.name.split('.')[-1]
             unique_filename = f"{user_id}_{uuid.uuid4().hex}.{file_extension}" 
             print(unique_filename)
@@ -2023,26 +2022,31 @@ def upload_user_image(request):
                 aws_access_key_id=AWS_ACCESS_KEY_ID,
                 aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
                 region_name=AWS_S3_REGION_NAME)
-            print(s3_client)
+
+            if user.user_image.name:
+                try:
+                    s3_client.delete_object(Bucket=AWS_STORAGE_BUCKET_NAME, Key=user.user_image.name)
+                except ClientError as e:
+                    error_code = e.response['Error']['Code']
+                    error_message = e.response['Error']['Message']
+                    return JsonResponse({
+                        "ERROR": f"Failed to delete old image. Error code: {error_code}, Message: {error_message}"
+                    }, status=500)
             try:
-                print("Attempting to upload file to S3...",image_file.content_type)
                 s3_client.upload_fileobj(
                     image_file,
                     AWS_STORAGE_BUCKET_NAME,
                     f"user_images/{unique_filename}",
 
-                    ExtraArgs={'ContentType': image_file.content_type}
+                    ExtraArgs={'ContentType': image_file.content_type, 'ACL': 'public-read'}
                 )
-                print("File uploaded successfully to S3")
             except ClientError as e:
-                print("ClientError:", str(e))
                 error_code = e.response['Error']['Code']
                 error_message = e.response['Error']['Message']
                 return JsonResponse({
                     "ERROR": f"S3 upload failed. Error code: {error_code}, Message: {error_message}"
                 }, status=500)
             except Exception as e:
-                print("Unexpected error during S3 upload:", str(e))
                 return JsonResponse({"ERROR": f"Unexpected error during S3 upload: {str(e)}"}, status=500)
 
             s3_url = f"https://{AWS_S3_CUSTOM_DOMAIN}/user_images/{unique_filename}"
