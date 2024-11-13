@@ -44,6 +44,7 @@ class JWTAuthenticationMiddleware:
             "/get_defaultSetting",
             "/logout_user",
             "/set_password",
+            "/upload_user_image",
         ]
         bypass_paths = [
             '/send_otp_to_email',
@@ -52,7 +53,6 @@ class JWTAuthenticationMiddleware:
             '/login_viewJson',
             "/freeOutputJson",
             "/verify_loader",
-            # "/upload_user_image",
         ]
         if any(request.path.startswith(path) for path in protected_paths):
             token = request.COOKIES.get('jwt_token')
