@@ -2184,3 +2184,27 @@ def assign_load_plan(request):
         
         return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_planner can assign loadplan"}, status=403)
     return JsonResponse({"ERROR": "Invalid request method"}, status=405)
+
+def contact_email(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            email = data.get("email")
+            company_domain = data.get("domain")
+            first_name = data.get("first")
+            last_name = data.get("last")
+            phone_number = data.get("phone")
+            
+            send_mail(
+                subject=f"Request for contact by '{first_name}'",
+                message=f"First Name - '{first_name}', Last Name - '{last_name}', Company domain - '{company_domain}', Phone Number - '{phone_number}' ",
+                from_email=DEFAULT_FROM_EMAIL,
+                recipient_list=[DEFAULT_FROM_EMAIL],  # Send to the company admin's email
+                fail_silently=False,
+            )
+            return JsonResponse({"SUCCESS": {"message":"Request send successfully"}}, status=201)
+        
+        except Exception as e:
+            return JsonResponse({"ERROR": str(e)}, status=500)
+        
+    return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
