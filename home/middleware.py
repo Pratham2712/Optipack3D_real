@@ -53,6 +53,7 @@ class JWTAuthenticationMiddleware:
             '/login_viewJson',
             "/freeOutputJson",
             "/verify_loader",
+            "/contact_email",
         ]
         if any(request.path.startswith(path) for path in protected_paths):
             token = request.COOKIES.get('jwt_token')
