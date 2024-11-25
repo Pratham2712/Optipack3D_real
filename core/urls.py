@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path,include
 from home.views import *
 from home.mobileView import *
+from home.authView import *
 from django.conf import settings
 from django.contrib.auth import views as auth_views
 from django.conf.urls.static import static
@@ -30,7 +31,6 @@ urlpatterns = [
     path('freeTrial/', freeTrial, name='freeTrial'),
     path('join/', joinCreateOrganisation, name='joinCreateOrganisation'),  # Updated name for join/create organisation
     path('login/', login_view, name='login'),  # Use distinct view function for login
-    path('login_viewJson', login_viewJson, name='login_viewJson'),  # Use distinct view function for login
     path('admin/', admin.site.urls),
     path('dashboard/', dashboard, name='dashboard'),
     path('profile/', profile, name='profile'),
@@ -49,6 +49,7 @@ urlpatterns = [
     path('check_login', check_login, name='check_login'),
     path('logout_user', logout_user, name='logout_user'),
     path('set_password', set_password, name='set_password'),
+    path('login_viewJson', login_viewJson, name='login_viewJson'),  # Use distinct view function for login
     # admin route ===================================================================================================
     path('add_permission', add_permission, name='add_permission'),
     path('get_permissions', get_permissions, name='get_permissions'),
