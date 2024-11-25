@@ -57,16 +57,6 @@ truck_specs = {
     # Add more specifications as needed
 }
 # SECRET_KEY = settings.SECRET_KEY 
-def generate_jwt_token(email_id,userType,company):
-    expiration_time = datetime.utcnow() + timedelta(hours=5)
-    payload = {
-        'email': email_id,
-        'userType':userType,
-        "company":company,
-        'exp': expiration_time  # Expiration time for the token
-    }
-    token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
-    return token
 
 def get_csrf_token(request):
     csrf_token = get_token(request)
@@ -793,7 +783,7 @@ def add_permission(request):
                     user_type=user_type,
                     dashboard=dashboard,
                     defaults={'allowed': allowed}
-                )
+                )                                                                                                                                 
 
                 # Step 3: If it exists, update the 'allowed' field if it's different
                 if not created:
@@ -966,7 +956,7 @@ def get_loadplan(request):
             result = {
                 "company": company.company_name,
                 "shipping_location": company.shipping_location, 
-                "destination_location": company.destination_location,  
+                "destination_location": company.destination_location,   
                 "container_type": company.container_type,  
             }
             return JsonResponse({"SUCCESS": result}, status=200)
