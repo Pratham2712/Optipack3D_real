@@ -1390,6 +1390,37 @@ def add_or_edit_order(request):
     
     return JsonResponse({'ERROR': 'Invalid request method, use POST'}, status=405)
 
+def delete_order(request):
+    if request.method == 'POST':
+        if hasattr(request,'userType') and request.userType in ["Company_Admin", "Company_planner"]:
+            company_name = request.company
+            try:
+                data = json.loads(request.body)
+                order_number = data.get('order_number')
+                print(order_number)
+    
+                if not order_number:
+                    return JsonResponse({"ERROR": "Order number not found"}, status=404)
+                company = Company.objects.filter(company_name=company_name).first()
+
+                if not company:
+                    return JsonResponse({"ERROR": "Company not found"}, status=404)
+                order = Order.objects.filter(order_number=order_number, company=company).first()
+                if not order:
+                    return JsonResponse({"ERROR": "Order not found for the specified company"}, status=404)
+
+                OrderSKU.objects.filter(order=order, company=company).delete()
+
+                order.delete()
+
+                return JsonResponse({"SUCCESS":{"message": "Order deleted successfully"}}, status=200)
+
+            except Exception as e:
+                return JsonResponse({"ERROR": str(e)}, status=500)
+        
+        return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_planner can add or edit orders"}, status=403)
+    return JsonResponse({'ERROR':'Invalid request method, use POST'},status=405)
+
 def get_order_data(request):
     if hasattr(request, 'userType') and request.userType in ["Company_Admin", "Company_planner"]:
         company_name = request.company
@@ -1399,12 +1430,17 @@ def get_order_data(request):
                 return JsonResponse({"ERROR": "No orders found for the specified company"}, status=404)
             order_data = []
             for order in orders:
+                assigned_users = LoadPlanAssignment.objects.filter(load_plan__order_numbers__contains=[order.order_number],load_plan__company__company_name=company_name )\
+                    .select_related('assigned_user')  
+
+                assigned_user_emails = [assignment.assigned_user.email_id for assignment in assigned_users]
                 order_data.append({
                     "order_id": order.order_id,
                     "source_location": order.source_location,
                     "destination_location": order.destination_location,
                     "planned_start_date": order.planned_start_date,
                     "order_number": order.order_number,
+                    "assigned_users": assigned_user_emails,
                 })
             return JsonResponse({
                 "SUCCESS": {
@@ -1415,8 +1451,7 @@ def get_order_data(request):
 
         except Exception as e:
             return JsonResponse({"ERROR": str(e)}, status=500)
-    return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_planner can add or edit orders"}, status=403)   
-
+    return JsonResponse({"ERROR": "Unauthorized access, only Company_Admin or Company_planner can add or edit orders"}, status=403) 
 
 def get_skuByCode(request):
     if request.method == 'POST':
@@ -1867,10 +1902,12 @@ def contact_email(request):
             first_name = data.get("first")
             last_name = data.get("last")
             phone_number = data.get("phone")
+            job_title = data.get("job_title")
+            message = data.get("message")
             
             send_mail(
                 subject=f"Request for contact by '{first_name}'",
-                message=f"First Name - '{first_name}', Last Name - '{last_name}', Company domain - '{company_domain}', Phone Number - '{phone_number}' ",
+                message=f"First Name - '{first_name}', Last Name - '{last_name}', Company domain - '{company_domain}', Phone Number - '{phone_number}', Job Title - '{job_title}', Message - '{message}' ",
                 from_email=DEFAULT_FROM_EMAIL,
                 recipient_list=[DEFAULT_FROM_EMAIL],  # Send to the company admin's email
                 fail_silently=False,
