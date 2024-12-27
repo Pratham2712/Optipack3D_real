@@ -358,7 +358,8 @@ def check_login(request):
                 # 'company': user.company.company_name if user.company else None,
                 'message': "User is logged in",
                 'image_url': user.user_image_url,
-                "lastLogin": user.last_login
+                "lastLogin": user.last_login,
+                "company" : user.company_id
             }
         })
     else:
