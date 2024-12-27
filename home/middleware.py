@@ -45,6 +45,7 @@ class JWTAuthenticationMiddleware:
             "/logout_user",
             "/set_password",
             "/upload_user_image",
+            "/delete_order",
         ]
         bypass_paths = [
             '/send_otp_to_email',
